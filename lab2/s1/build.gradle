@@ -46,11 +46,9 @@ dependencies {
 
     implementation("org.hibernate.validator:hibernate-validator:8.0.1.Final")
 
-    implementation("com.google.auto.service:auto-service:1.1.1")
-//
     implementation("io.swagger.core.v3:swagger-annotations-jakarta:2.2.22")
 //
-//    implementation('org.postgresql:postgresql:42.7.2')
+    implementation('org.postgresql:postgresql:42.7.2')
 //
 //    implementation 'jakarta.ws.rs:jakarta.ws.rs-api:2.1.6' // Use the latest version
 //    providedCompile 'org.glassfish.jersey.containers:jersey-container-servlet-core:2.36' // Use the latest version

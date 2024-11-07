@@ -36,7 +36,7 @@ data class CreateHumanBeingRequest (
 
         @XmlElement(name = "impactSpeed")
         @field:NotNull(message = "is not correct value")
-        @field:PositiveOrZero
+        @field:Max(676)
         val impactSpeed: Float?,
 
         @XmlElement(name = "minutesOfWaiting")
@@ -67,10 +67,7 @@ data class CreateHumanBeingRequest (
 {
         constructor() : this(
                 name = null,
-                coordinates = CoordinatesDto(
-                    x = null,
-                    y = null
-                ),
+                coordinates = null,
                 realHero = false,
                 hasToothpick = false,
                 impactSpeed = null,

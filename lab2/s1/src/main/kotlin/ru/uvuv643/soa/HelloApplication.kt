@@ -9,6 +9,8 @@ import jakarta.ws.rs.ext.Provider
 import jakarta.xml.bind.annotation.*
 import org.glassfish.jersey.server.ResourceConfig
 import ru.uvuv643.soa.server.HumanWebServiceImpl
+import ru.uvuv643.soa.server.StaticServiceImpl
+import ru.uvuv643.soa.server.ExampleResource
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -38,10 +40,22 @@ class ConstraintViolationExceptionMapper : ExceptionMapper<ConstraintViolationEx
     }
 }
 
+@Provider
+class AnyMapper : ExceptionMapper<Throwable> {
+    override fun toResponse(exception: Throwable): Response {
+        exception.printStackTrace()
+        return Response.serverError().entity(exception.stackTrace.toString()).build()
+    }
+}
+
+
 @ApplicationPath("/api")
 class MyApplication : ResourceConfig() {
     init {
         register(HumanWebServiceImpl::class.java)
+        register(StaticServiceImpl::class.java)
+        register(ExampleResource::class.java)
         register(ConstraintViolationExceptionMapper::class.java)
+        register(AnyMapper::class.java)
     }
 }

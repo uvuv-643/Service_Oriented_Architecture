@@ -19,11 +19,13 @@ data class CoordinatesDto(
         @field:NotNull(message = "is not correct value")
         @field:Max(9)
         @XmlElement(name = "x")
-        val x: Int? = null,
+        val x: Int?,
 
         @field:Valid
         @field:NotNull(message = "is not correct value")
         @XmlElement(name = "y")
-        val y: Float? = null,
+        val y: Long?,
 
-        )
+        ) {
+        constructor() : this(null, null)
+}

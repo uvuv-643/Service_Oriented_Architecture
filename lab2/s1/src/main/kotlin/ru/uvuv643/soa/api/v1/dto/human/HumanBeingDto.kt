@@ -19,12 +19,12 @@ data class HumanBeingDto (
         @XmlElement(name = "id")
         @NotNull
         @Min(0)
-        val id : Int?,
+        val id : Int,
 
         @XmlElement(name = "name")
         @NotNull
         @Size(min = 1)
-        val name : String?,
+        val name : String,
 
         @XmlElement(name = "coordinates")
         @NotNull
@@ -37,20 +37,20 @@ data class HumanBeingDto (
 
         @XmlAttribute(name = "realHero")
         @NotNull
-        val realHero : Boolean?,
+        val realHero : Boolean,
 
         @XmlAttribute(name = "hasToothpick")
         @NotNull
-        val hasToothpick : Boolean?,
+        val hasToothpick : Boolean,
 
         @XmlElement(name = "impactSpeed")
         @NotNull
-        val impactSpeed : Float?,
+        val impactSpeed : Float,
 
         @XmlElement(name = "minutesOfWaiting")
         @NotNull
         @Min(0)
-        val minutesOfWaiting : Double?,
+        val minutesOfWaiting : Double,
 
         @XmlElement(name = "weaponType")
         @Valid
@@ -59,30 +59,27 @@ data class HumanBeingDto (
         @XmlElement(name = "mood")
         @NotNull
         @Valid
-        val mood : String?,
+        val mood : String,
 
         @XmlElement(name = "car")
         @Valid
         @NotNull
-        val car : CarDto?,
+        val car : CarDto,
 
         ) {
         constructor() : this(
                 id = 1,
-                name = null,
-                coordinates = CoordinatesDto(
-                        x = null,
-                        y = null
-                ),
+                name = "null",
+                coordinates = null,
                 creationDate = Date(),
                 realHero = true,
                 hasToothpick = false,
-                impactSpeed = null,
-                minutesOfWaiting = null,
+                impactSpeed = 1.0f,
+                minutesOfWaiting = 1.0,
                 car = CarDto(
                         cool = true
                 ),
-                mood = null,
-                weaponType = null
+                mood = "",
+                weaponType = ""
         )
 }

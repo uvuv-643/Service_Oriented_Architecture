@@ -17,7 +17,87 @@ import ru.uvuv643.soa.api.v1.dto.human.response.StatisticResponseDto
 import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.SQLException
+import java.sql.Types
 import java.util.*
+
+
+
+fun insertHumanBeing(connection: Connection, human: HumanBeingDto) {
+    connection.use { conn ->
+        conn.autoCommit = false
+        try {
+            val coordinatesId = human.coordinates?.let { insertCoordinates(conn, it) }
+
+            val carId = insertCar(conn, human.car)
+
+            val insertHumanSQL = """
+                INSERT INTO HumanBeing(
+                    name, coordinates_id, creationDate, realHero, hasToothpick, impactSpeed, minutesOfWaiting, weaponType, mood, car_id
+                ) VALUES (?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?)
+            """.trimIndent()
+
+            conn.prepareStatement(insertHumanSQL).use { stmt ->
+                stmt.setString(1, human.name)
+                if (coordinatesId != null) {
+                    stmt.setInt(2, coordinatesId)
+                }
+                stmt.setBoolean(3, human.realHero)
+                stmt.setBoolean(4, human.hasToothpick)
+                human.impactSpeed.let {
+                    stmt.setDouble(5, it.toDouble())
+                }
+                human.minutesOfWaiting.let {
+                    stmt.setDouble(6, it)
+                }
+                human.weaponType?.let {
+                    stmt.setObject(7, it, Types.OTHER)
+                } ?: stmt.setNull(7, Types.OTHER)
+                stmt.setObject(8, human.mood, Types.OTHER)
+                stmt.setInt(9, carId)
+                stmt.executeUpdate()
+            }
+
+            conn.commit()
+            println("Запись HumanBeing успешно вставлена.")
+        } catch (ex: Exception) {
+            conn.rollback()
+            ex.printStackTrace()
+        } finally {
+            conn.autoCommit = true
+        }
+    }
+}
+
+fun insertCoordinates(conn: Connection, coordinates: CoordinatesDto): Int {
+    val insertCoordinatesSQL = "INSERT INTO Coordinates (x, y) VALUES (?, ?) RETURNING id"
+    conn.prepareStatement(insertCoordinatesSQL).use { stmt ->
+        stmt.setInt(1, coordinates.x as Int)
+        stmt.setLong(2, coordinates.y as Long)
+        val rs = stmt.executeQuery()
+        if (rs.next()) {
+            return rs.getInt("id")
+        } else {
+            throw Exception("Не удалось получить ID координат.")
+        }
+    }
+}
+
+fun insertCar(conn: Connection, car: CarDto): Int {
+    val insertCarSQL = "INSERT INTO Car (cool) VALUES (?) RETURNING id"
+    conn.prepareStatement(insertCarSQL).use { stmt ->
+        car.cool?.let {
+            stmt.setBoolean(1, it)
+        } ?: stmt.setNull(1, Types.BOOLEAN)
+        val rs = stmt.executeQuery()
+        if (rs.next()) {
+            return rs.getInt("id")
+        } else {
+            throw Exception("Не удалось получить ID автомобиля.")
+        }
+
+
+    }
+}
 
 @Consumes(MediaType.APPLICATION_XML)
 @Produces(MediaType.APPLICATION_XML)
@@ -33,112 +113,33 @@ open class HumanWebServiceImpl : HumanWebService {
     @POST
     @Path("/human-being")
     override fun createHumanBeing(@Valid request: CreateHumanBeingRequest): Response? {
-        return Response.ok(HumanBeingDto(
+
+        if (request.impactSpeed == null && request.minutesOfWaiting == null && request.car == null) {
+            return Response.serverError().entity(request).build();
+        }
+
+        val humanBeing = HumanBeingDto(
             id = 1,
-            name = request.name,
+            name = request.name.toString(),
             coordinates = request.coordinates,
-            creationDate = Date(),
-            realHero = request.realHero,
-            hasToothpick = request.hasToothpick,
-            impactSpeed = request.impactSpeed,
-            minutesOfWaiting = request.minutesOfWaiting,
+            creationDate = Date(System.currentTimeMillis()),
+            realHero = request.realHero == true,
+            hasToothpick = request.hasToothpick == true,
+            impactSpeed = request.impactSpeed as Float,
+            minutesOfWaiting = request.minutesOfWaiting as Double,
             weaponType = request.weaponType,
-            mood = request.mood,
-            car = request.car
-        )).type(MediaType.APPLICATION_XML).build();
+            mood = request.mood.toString(),
+            car = request.car as CarDto
+        )
 
-
-        TODO("Not yet implemented")
-//        val connection: Connection = DatabaseConfig.getConnection()
-//        val insertSql = """
-//            INSERT INTO human_being (name, coordinates_id, creation_date, real_hero, has_toothpick,
-//                                     impact_speed, minutes_of_waiting, weapon_type, mood, car_id)
-//            VALUES (?, ?, NOW(), ?, ?, ?, ?, ?::weapon_type_enum, ?::mood_enum, ?)
-//            RETURNING id
-//        """.trimIndent()
-//
-//        try {
-//            connection.prepareStatement(insertSql, PreparedStatement.RETURN_GENERATED_KEYS).use { statement ->
-//                statement.setString(1, request.name)
-//                statement.setInt(2, saveCoordinates(request.coordinates, connection)) // Save coordinates separately
-//                statement.setBoolean(3, request.realHero ?: false)
-//                statement.setBoolean(4, request.hasToothpick ?: false)
-//                statement.setObject(5, request.impactSpeed)
-//                statement.setLong(6, request.minutesOfWaiting ?: 0)
-//                statement.setString(7, request.weaponType?.name)
-//                statement.setString(8, request.mood?.name)
-//                statement.setObject(9, saveCar(request.car, connection)) // Save car separately
-//
-//                val affectedRows = statement.executeUpdate()
-//                if (affectedRows == 0) throw SQLException("Creating Human Being failed, no rows affected.")
-//
-//                statement.generatedKeys.use { keys ->
-//                    if (keys.next()) {
-//                        val newId = keys.getInt(1)
-//                        val humanBeing = HumanBeingDto(
-//                            id = newId,
-//                            name = request.name ?: "",
-//                            coordinates = request.coordinates,
-//                            creationDate = java.util.Date(),
-//                            realHero = request.realHero ?: false,
-//                            hasToothpick = request.hasToothpick ?: false,
-//                            impactSpeed = request.impactSpeed ?: 0.0F,
-//                            minutesOfWaiting = request.minutesOfWaiting ?: 0L,
-//                            weaponType = request.weaponType,
-//                            mood = request.mood,
-//                            car = request.car
-//                        )
-//                        return humanBeing
-//                    } else {
-//                        throw SQLException("Creating Human Being failed, no ID obtained.")
-//                    }
-//                }
-//            }
-//        } catch (ex: SQLException) {
-//            throw WebApplicationException("Database error: ${ex.message}", Response.Status.INTERNAL_SERVER_ERROR)
-//        } finally {
-//            connection.close()
-//        }
-    }
-
-    private fun saveCoordinates(coordinates: CoordinatesDto, connection: Connection): Int {
-        val coordinatesSql = """
-            INSERT INTO coordinates (x, y)
-            VALUES (?, ?)
-            RETURNING id
-        """.trimIndent()
-
-        connection.prepareStatement(coordinatesSql, PreparedStatement.RETURN_GENERATED_KEYS).use { statement ->
-            statement.setObject(1, coordinates.x)
-            statement.setFloat(2, coordinates.y ?: throw IllegalArgumentException("Y coordinate is required"))
-
-            statement.executeUpdate()
-            statement.generatedKeys.use { keys ->
-                if (keys.next()) return keys.getInt(1)
-                else throw SQLException("Creating Coordinates failed, no ID obtained.")
-            }
+        DatabaseConfig.getConnection().use { connection ->
+            insertHumanBeing(connection, humanBeing)
         }
+
+        return Response.ok().entity(humanBeing).type(MediaType.APPLICATION_XML_TYPE).build();
+
     }
 
-    private fun saveCar(car: CarDto?, connection: Connection): Int? {
-        if (car == null) return null
-
-        val carSql = """
-            INSERT INTO car (cool)
-            VALUES (?)
-            RETURNING id
-        """.trimIndent()
-
-        connection.prepareStatement(carSql, PreparedStatement.RETURN_GENERATED_KEYS).use { statement ->
-            statement.setObject(1, car.cool)
-
-            statement.executeUpdate()
-            statement.generatedKeys.use { keys ->
-                if (keys.next()) return keys.getInt(1)
-                else throw SQLException("Creating Car failed, no ID obtained.")
-            }
-        }
-    }
 
     override fun getHumanBeingById(id: Int): HumanBeingDto {
         TODO("Not yet implemented")
