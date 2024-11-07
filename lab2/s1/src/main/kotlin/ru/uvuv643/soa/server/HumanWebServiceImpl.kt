@@ -1,5 +1,6 @@
 package ru.uvuv643.soa.server
 
+import jakarta.validation.Valid
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
@@ -31,7 +32,22 @@ open class HumanWebServiceImpl : HumanWebService {
     @Produces(MediaType.APPLICATION_XML)
     @POST
     @Path("/human-being")
-    override fun createHumanBeing(request: CreateHumanBeingRequest): HumanBeingDto {
+    override fun createHumanBeing(@Valid request: CreateHumanBeingRequest): Response? {
+        return Response.ok(HumanBeingDto(
+            id = 1,
+            name = request.name,
+            coordinates = request.coordinates,
+            creationDate = Date(),
+            realHero = request.realHero,
+            hasToothpick = request.hasToothpick,
+            impactSpeed = request.impactSpeed,
+            minutesOfWaiting = request.minutesOfWaiting,
+            weaponType = request.weaponType,
+            mood = request.mood,
+            car = request.car
+        )).type(MediaType.APPLICATION_XML).build();
+
+
         TODO("Not yet implemented")
 //        val connection: Connection = DatabaseConfig.getConnection()
 //        val insertSql = """

@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
+import jakarta.ws.rs.core.Response
 import ru.uvuv643.soa.api.v1.dto.enums.*
 import ru.uvuv643.soa.api.v1.dto.human.HumanBeingDto
 import ru.uvuv643.soa.api.v1.dto.human.ListHumanBeingDto
@@ -93,7 +94,7 @@ interface HumanWebService {
                 )
             ]
     )
-    fun createHumanBeing(@Valid request: CreateHumanBeingRequest): HumanBeingDto
+    fun createHumanBeing(@Valid request: CreateHumanBeingRequest): Response?
 
     @GET
     @Path("/human-being/{id}")

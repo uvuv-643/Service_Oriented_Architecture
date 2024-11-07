@@ -1,95 +1,88 @@
 package ru.uvuv643.soa.api.v1.dto.human
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
-import io.swagger.v3.oas.annotations.media.Schema
+import jakarta.validation.constraints.NotNull
+import jakarta.xml.bind.annotation.XmlAccessType
+import jakarta.xml.bind.annotation.XmlAccessorType
+import jakarta.xml.bind.annotation.XmlElement
+import jakarta.xml.bind.annotation.XmlRootElement
+import jakarta.validation.Valid
+import jakarta.validation.constraints.Min
+import jakarta.validation.constraints.Size
 import jakarta.xml.bind.annotation.XmlAttribute
-import ru.uvuv643.soa.api.v1.dto.enums.MoodDto
-import ru.uvuv643.soa.api.v1.dto.enums.WeaponTypeDto
 import java.util.*
 
 
-@Schema(title = "HumanBeing", description = "Main structural unit. Describes a person. Purpose of this object is to be a part of some collection.")
-@JacksonXmlRootElement
-data class HumanBeingDto constructor(
+@XmlRootElement
+@XmlAccessorType(XmlAccessType.FIELD)
+data class HumanBeingDto (
 
-        @Schema(
-                description = "Unique ID generated on server",
-                requiredMode = Schema.RequiredMode.REQUIRED
-        )
-        @param:JacksonXmlProperty(namespace = "id")
-        val id : Int,
+        @XmlElement(name = "id")
+        @NotNull
+        @Min(0)
+        val id : Int?,
 
-        @Schema(
-                description = "Name of Human Being",
-                requiredMode = Schema.RequiredMode.REQUIRED
-        )
-        @param:JacksonXmlProperty(namespace = "name")
-        val name : String,
+        @XmlElement(name = "name")
+        @NotNull
+        @Size(min = 1)
+        val name : String?,
 
-        @Schema(
-                description = "Coordinates",
-                requiredMode = Schema.RequiredMode.REQUIRED
-        )
-        @param:JacksonXmlProperty(namespace = "coordinates")
-        val coordinates : CoordinatesDto,
+        @XmlElement(name = "coordinates")
+        @NotNull
+        @Valid
+        val coordinates : CoordinatesDto?,
 
-        @Schema(
-                description = "When object was created",
-                requiredMode = Schema.RequiredMode.REQUIRED
-        )
-        @param:JacksonXmlProperty(namespace = "creationDate")
+        @XmlElement(name = "creationDate")
+        @NotNull
         val creationDate : Date,
 
-        @Schema(
-                description = "Is human real hero?",
-                requiredMode = Schema.RequiredMode.REQUIRED
-        )
-        @XmlAttribute
-        @param:JacksonXmlProperty(isAttribute = true,namespace = "realHero")
-        val realHero : Boolean,
+        @XmlAttribute(name = "realHero")
+        @NotNull
+        val realHero : Boolean?,
 
-        @Schema(
-                description = "Does human has toothpick?",
-                requiredMode = Schema.RequiredMode.REQUIRED
-        )
-        @XmlAttribute
-        @param:JacksonXmlProperty(isAttribute = true, namespace = "hasToothpick")
-        val hasToothpick : Boolean,
+        @XmlAttribute(name = "hasToothpick")
+        @NotNull
+        val hasToothpick : Boolean?,
 
-        @Schema(
-                description = "Impact speed",
-                requiredMode = Schema.RequiredMode.NOT_REQUIRED
-        )
-        @param:JacksonXmlProperty(namespace = "impactSpeed")
-        val impactSpeed : Float,
+        @XmlElement(name = "impactSpeed")
+        @NotNull
+        val impactSpeed : Float?,
 
-        @Schema(
-                description = "Minutes of waiting",
-                requiredMode = Schema.RequiredMode.REQUIRED
-        )
-        @param:JacksonXmlProperty(namespace = "minutesOfWaiting")
-        val minutesOfWaiting : Long,
+        @XmlElement(name = "minutesOfWaiting")
+        @NotNull
+        @Min(0)
+        val minutesOfWaiting : Double?,
 
-        @Schema(
-                description = "Weapon Type",
-                requiredMode = Schema.RequiredMode.NOT_REQUIRED
-        )
-        @param:JacksonXmlProperty(namespace = "weaponType")
-        val weaponType : WeaponTypeDto,
+        @XmlElement(name = "weaponType")
+        @Valid
+        val weaponType : String?,
 
-        @Schema(
-                description = "Mood",
-                requiredMode = Schema.RequiredMode.NOT_REQUIRED
-        )
-        @param:JacksonXmlProperty(namespace = "mood")
-        val mood : MoodDto,
+        @XmlElement(name = "mood")
+        @NotNull
+        @Valid
+        val mood : String?,
 
-        @Schema(
-                description = "Human Car",
-                requiredMode = Schema.RequiredMode.NOT_REQUIRED
-        )
-        @param:JacksonXmlProperty(namespace = "car")
-        val car : CarDto,
+        @XmlElement(name = "car")
+        @Valid
+        @NotNull
+        val car : CarDto?,
 
+        ) {
+        constructor() : this(
+                id = 1,
+                name = null,
+                coordinates = CoordinatesDto(
+                        x = null,
+                        y = null
+                ),
+                creationDate = Date(),
+                realHero = true,
+                hasToothpick = false,
+                impactSpeed = null,
+                minutesOfWaiting = null,
+                car = CarDto(
+                        cool = true
+                ),
+                mood = null,
+                weaponType = null
         )
+}

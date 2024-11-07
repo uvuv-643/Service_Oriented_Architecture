@@ -1,5 +1,8 @@
 package ru.uvuv643.soa.api.v1.dto.human.request
 
+import EnumValue
+import jakarta.validation.Valid
+import jakarta.validation.constraints.*
 import jakarta.xml.bind.annotation.XmlRootElement
 import jakarta.xml.bind.annotation.XmlAccessorType
 import jakarta.xml.bind.annotation.XmlAccessType
@@ -12,49 +15,68 @@ import ru.uvuv643.soa.api.v1.dto.human.CoordinatesDto
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-data class CreateHumanBeingRequest constructor(
+data class CreateHumanBeingRequest (
+
         @XmlElement(name = "name")
-        val name: String,
+        @field:NotBlank
+        val name: String?,
 
         @XmlElement(name = "coordinates")
-        val coordinates: CoordinatesDto,
+        @field:NotNull
+        @field:Valid
+        val coordinates: CoordinatesDto?,
 
         @XmlAttribute(name = "realHero")
-        val realHero: Boolean,
+        @field:NotNull
+        val realHero: Boolean?,
 
         @XmlAttribute(name = "hasToothpick")
-        val hasToothpick: Boolean,
+        @field:NotNull
+        val hasToothpick: Boolean?,
 
         @XmlElement(name = "impactSpeed")
-        val impactSpeed: Float,
+        @field:NotNull(message = "is not correct value")
+        @field:PositiveOrZero
+        val impactSpeed: Float?,
 
         @XmlElement(name = "minutesOfWaiting")
-        val minutesOfWaiting: Long,
+        @field:NotNull(message = "is not correct value")
+        @field:PositiveOrZero
+        val minutesOfWaiting: Double?,
 
         @XmlElement(name = "car")
-        val car: CarDto,
+        @field:Valid
+        @field:NotNull
+        val car: CarDto?,
 
         @XmlElement(name = "mood")
-        val mood: MoodDto?,
+        @field:NotNull
+        @field:Valid
+        @field:EnumValue(
+                enumClass = MoodDto::class,
+        )
+        val mood: String?,
 
         @XmlElement(name = "weaponType")
-        val weaponType: WeaponTypeDto?
+        @field:Valid
+        @field:EnumValue(
+                enumClass = WeaponTypeDto::class,
+        )
+        val weaponType: String?
 )
 {
         constructor() : this(
-                name = "null",
+                name = null,
                 coordinates = CoordinatesDto(
-                    x = 1,
-                    y = 0.5f
+                    x = null,
+                    y = null
                 ),
-                realHero = true,
+                realHero = false,
                 hasToothpick = false,
-                impactSpeed = 656f,
-                minutesOfWaiting = 6,
-                car = CarDto(
-                    cool = true
-                ),
-                mood = MoodDto.CALM,
-                weaponType = WeaponTypeDto.BAT
+                impactSpeed = null,
+                minutesOfWaiting = null,
+                car = null,
+                mood = null,
+                weaponType = null
         )
 }
