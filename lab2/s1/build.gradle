@@ -1,0 +1,61 @@
+plugins {
+    id 'java'
+    id 'org.jetbrains.kotlin.jvm' version '1.7.20'
+    id 'war'
+
+}
+
+group 'ru.uvuv643'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    junitVersion = '5.9.1'
+}
+
+sourceCompatibility = '11'
+targetCompatibility = '11'
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+[compileKotlin, compileTestKotlin].forEach {
+    it.kotlinOptions {
+        jvmTarget = '1.8'
+    }
+}
+
+
+dependencies {
+
+    implementation("org.glassfish.jersey.containers:jersey-container-servlet:3.0.3") // Jersey as JAX-RS implementation
+    implementation("jakarta.ws.rs:jakarta.ws.rs-api:3.0.0")
+    implementation("jakarta.xml.bind:jakarta.xml.bind-api:3.0.1") // JAXB for XML support
+    implementation("org.glassfish.jaxb:jaxb-runtime:3.0.2") // JAXB runtime for XML support
+
+//    compileOnly('jakarta.platform:jakarta.jakartaee-api:9.1.0')
+//
+    implementation("com.fasterxml.jackson.core:jackson-annotations:2.17.2")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.17.2")
+    implementation("jakarta.annotation:jakarta.annotation-api:3.0.0")
+//
+    implementation("io.swagger.core.v3:swagger-annotations-jakarta:2.2.22")
+//
+//    implementation('org.postgresql:postgresql:42.7.2')
+//
+//    implementation 'jakarta.ws.rs:jakarta.ws.rs-api:2.1.6' // Use the latest version
+//    providedCompile 'org.glassfish.jersey.containers:jersey-container-servlet-core:2.36' // Use the latest version
+//    providedCompile 'org.glassfish.jersey.media:jersey-media-jaxb:2.36' // Use the latest version
+
+    testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
+}
+
+
+test {
+    useJUnitPlatform()
+}
