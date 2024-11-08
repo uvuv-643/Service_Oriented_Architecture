@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
+import jakarta.validation.constraints.PositiveOrZero
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
@@ -14,6 +15,7 @@ import ru.uvuv643.soa.api.v1.dto.human.HumanBeingDto
 import ru.uvuv643.soa.api.v1.dto.human.ListHumanBeingDto
 import ru.uvuv643.soa.api.v1.dto.human.request.CreateHumanBeingRequest
 import ru.uvuv643.soa.api.v1.dto.human.request.DeleteHumanBeingRequest
+import ru.uvuv643.soa.api.v1.dto.human.request.ModifyHumanBeingRequest
 import ru.uvuv643.soa.api.v1.dto.human.response.DeleteResponseDto
 import ru.uvuv643.soa.api.v1.dto.human.response.StatisticResponseDto
 import java.util.*
@@ -44,29 +46,29 @@ interface HumanWebService {
             ]
     )
     fun getAllHumanBeing(
-            @QueryParam("idGte") idGte: Optional<Int>?,
-            @QueryParam("idLte") idLte: Optional<Int>?,
-            @QueryParam("nameIn") nameIn: Optional<List<String>>?,
-            @QueryParam("coordinateXGte") coordinateXGte: Optional<Int>?,
-            @QueryParam("coordinateXLte") coordinateXLte: Optional<Int>?,
-            @QueryParam("coordinateYGte") coordinateYGte: Optional<Double>?,
-            @QueryParam("coordinateYLte") coordinateYLte: Optional<Double>?,
-            @QueryParam("creationDateGte") creationDateGte: Optional<Date>?,
-            @QueryParam("creationDateLte") creationDateLte: Optional<Date>?,
-            @QueryParam("realHero") realHero: Optional<Boolean>?,
-            @QueryParam("hasToothpick") hasToothpick: Optional<Boolean>?,
-            @QueryParam("impactSpeedGte") impactSpeedGte: Optional<Float>?,
-            @QueryParam("impactSpeedLte") impactSpeedLte: Optional<Float>?,
-            @QueryParam("minutesOfWaitingGte") minutesOfWaitingGte: Optional<Long>?,
-            @QueryParam("minutesOfWaitingLte") minutesOfWaitingLte: Optional<Long>?,
-            @QueryParam("coolCar") coolCar: Optional<Boolean>?,
-            @QueryParam("moodIn") moodIn: Optional<List<MoodDto>>?,
-            @QueryParam("weaponTypeIn") weaponTypeIn: Optional<List<WeaponTypeDto>>?,
-            @QueryParam("page") page: Optional<Int>?,
-            @QueryParam("size") size: Optional<Int>?,
-            @QueryParam("sortDirection") sortDirection: Optional<SortOrderDto>?,
-            @QueryParam("sortField") sortField: Optional<String>?
-    ): ListHumanBeingDto
+        @QueryParam("idGte") idGte: Int?,
+        @QueryParam("idLte") idLte: Int?,
+        @QueryParam("nameIn") nameIn: List<String>?,
+        @QueryParam("coordinateXGte") coordinateXGte: Int?,
+        @QueryParam("coordinateXLte") coordinateXLte: Int?,
+        @QueryParam("coordinateYGte") coordinateYGte: Double?,
+        @QueryParam("coordinateYLte") coordinateYLte: Double?,
+        @QueryParam("creationDateGte") creationDateGte: Date?,
+        @QueryParam("creationDateLte") creationDateLte: Date?,
+        @QueryParam("realHero") realHero: Boolean?,
+        @QueryParam("hasToothpick") hasToothpick: Boolean?,
+        @QueryParam("impactSpeedGte") impactSpeedGte: Float?,
+        @QueryParam("impactSpeedLte") impactSpeedLte: Float?,
+        @QueryParam("minutesOfWaitingGte") minutesOfWaitingGte: Long?,
+        @QueryParam("minutesOfWaitingLte") minutesOfWaitingLte: Long?,
+        @QueryParam("coolCar") coolCar: Boolean?,
+        @QueryParam("moodIn") moodIn: List<String>?,
+        @QueryParam("weaponTypeIn") weaponTypeIn: List<String>?,
+        @QueryParam("page") page: Int?,
+        @QueryParam("size") size: Int?,
+        @QueryParam("sortFields") sortFields: List<String>?,
+        @QueryParam("sortDirections") sortDirections: List<SortOrderDto>?
+    ): Response?
 
     @POST
     @Path("/human-being")
@@ -116,7 +118,7 @@ interface HumanWebService {
                 )
             ]
     )
-    fun getHumanBeingById(@PathParam("id") id: Int): HumanBeingDto
+    fun getHumanBeingById(@PathParam("id") id: Int): Response?
 
     @PUT
     @Path("/human-being/{id}")
@@ -144,7 +146,7 @@ interface HumanWebService {
                 )
             ]
     )
-    fun modifyHumanBeing(@PathParam("id") id: String, @Valid request: CreateHumanBeingRequest): HumanBeingDto
+    fun modifyHumanBeing(@PathParam("id") id: String, @Valid request: ModifyHumanBeingRequest): Response?
 
     @GET
     @Path("/human-being/stats")
@@ -169,11 +171,10 @@ interface HumanWebService {
     fun getHumanStats(
             @QueryParam("field") field: Optional<StatisticFieldDto>?,
             @QueryParam("operation") operation: Optional<StatisticOperationDto>?
-    ): StatisticResponseDto
+    ): Response?
 
     @DELETE
-    @Path("/human-being/")
-    @Consumes(MediaType.APPLICATION_XML)
+    @Path("/human-being")
     @Produces(MediaType.APPLICATION_XML)
     @Operation(
             summary = "Delete human being with given params and limit",
@@ -193,7 +194,8 @@ interface HumanWebService {
             ]
     )
     fun deleteByParams(
-            @QueryParam("limit") limit: Optional<Int>?,
-            @Valid request: DeleteHumanBeingRequest
-    ): DeleteResponseDto
+        @QueryParam("carCool") carCool: Boolean?,
+        @QueryParam("impactSpeed") impactSpeed: Float?,
+        @QueryParam("limit") @PositiveOrZero @Valid limit: Int?
+    ): Response?
 }

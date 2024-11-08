@@ -38,8 +38,6 @@ dependencies {
     implementation("jakarta.xml.bind:jakarta.xml.bind-api:3.0.1") // JAXB for XML support
     implementation("org.glassfish.jaxb:jaxb-runtime:3.0.2") // JAXB runtime for XML support
 
-//    compileOnly('jakarta.platform:jakarta.jakartaee-api:9.1.0')
-//
     implementation("com.fasterxml.jackson.core:jackson-annotations:2.17.2")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.17.2")
     implementation("jakarta.annotation:jakarta.annotation-api:3.0.0")
@@ -47,12 +45,7 @@ dependencies {
     implementation("org.hibernate.validator:hibernate-validator:8.0.1.Final")
 
     implementation("io.swagger.core.v3:swagger-annotations-jakarta:2.2.22")
-//
     implementation('org.postgresql:postgresql:42.7.2')
-//
-//    implementation 'jakarta.ws.rs:jakarta.ws.rs-api:2.1.6' // Use the latest version
-//    providedCompile 'org.glassfish.jersey.containers:jersey-container-servlet-core:2.36' // Use the latest version
-//    providedCompile 'org.glassfish.jersey.media:jersey-media-jaxb:2.36' // Use the latest version
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")

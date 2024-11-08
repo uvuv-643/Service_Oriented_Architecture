@@ -1,4 +1,4 @@
-package ru.uvuv643.soa.api.v1.dto.human.response
+package ru.uvuv643.soa.api.v1.dto.human
 
 import jakarta.xml.bind.annotation.XmlAccessType
 import jakarta.xml.bind.annotation.XmlAccessorType
@@ -7,11 +7,14 @@ import jakarta.xml.bind.annotation.XmlRootElement
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-data class StatisticResponseDto (
+data class PairTeamHumanDto (
 
-        @XmlElement(name = "result")
-        val result: Double?,
+        @XmlElement(name = "humanBeingId")
+        val humanBeingId : Int,
 
-        ) {
-        constructor() : this(null)
+        @XmlElement(name = "teamId")
+        val teamId : Int,
+
+) {
+        constructor() : this(0, 0)
 }

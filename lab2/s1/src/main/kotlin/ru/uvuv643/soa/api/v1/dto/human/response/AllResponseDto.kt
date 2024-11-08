@@ -12,9 +12,11 @@ import ru.uvuv643.soa.api.v1.dto.human.HumanBeingDto
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-data class DeleteResponseDto constructor(
+data class AllResponseDto constructor(
 
         @XmlElementWrapper(name = "teamList")
-        val teamList: List<HumanBeingDto>?,
+        val humanBeingDto: List<HumanBeingDto>?,
 
-        )
+        ) {
+        constructor() : this(null)
+}

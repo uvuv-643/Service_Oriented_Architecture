@@ -1,6 +1,7 @@
 package ru.uvuv643.soa.server
 
 import jakarta.validation.Valid
+import jakarta.validation.constraints.PositiveOrZero
 import jakarta.ws.rs.*
 import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
@@ -12,11 +13,10 @@ import ru.uvuv643.soa.api.v1.dto.human.HumanBeingDto
 import ru.uvuv643.soa.api.v1.dto.human.ListHumanBeingDto
 import ru.uvuv643.soa.api.v1.dto.human.request.CreateHumanBeingRequest
 import ru.uvuv643.soa.api.v1.dto.human.request.DeleteHumanBeingRequest
-import ru.uvuv643.soa.api.v1.dto.human.response.DeleteResponseDto
+import ru.uvuv643.soa.api.v1.dto.human.request.ModifyHumanBeingRequest
+import ru.uvuv643.soa.api.v1.dto.human.response.AllResponseDto
 import ru.uvuv643.soa.api.v1.dto.human.response.StatisticResponseDto
 import java.sql.Connection
-import java.sql.PreparedStatement
-import java.sql.SQLException
 import java.sql.Types
 import java.util.*
 
@@ -104,8 +104,199 @@ fun insertCar(conn: Connection, car: CarDto): Int {
 @Path("/v1/")
 open class HumanWebServiceImpl : HumanWebService {
 
-    override fun getAllHumanBeing(idGte: Optional<Int>?, idLte: Optional<Int>?, nameIn: Optional<List<String>>?, coordinateXGte: Optional<Int>?, coordinateXLte: Optional<Int>?, coordinateYGte: Optional<Double>?, coordinateYLte: Optional<Double>?, creationDateGte: Optional<Date>?, creationDateLte: Optional<Date>?, realHero: Optional<Boolean>?, hasToothpick: Optional<Boolean>?, impactSpeedGte: Optional<Float>?, impactSpeedLte: Optional<Float>?, minutesOfWaitingGte: Optional<Long>?, minutesOfWaitingLte: Optional<Long>?, coolCar: Optional<Boolean>?, moodIn: Optional<List<MoodDto>>?, weaponTypeIn: Optional<List<WeaponTypeDto>>?, page: Optional<Int>?, size: Optional<Int>?, sortDirection: Optional<SortOrderDto>?, sortField: Optional<String>?): ListHumanBeingDto {
-        TODO("Not yet implemented")
+    @GET
+    @Path("/human-being")
+    override fun getAllHumanBeing(
+        @QueryParam("idGte") idGte: Int?,
+        @QueryParam("idLte") idLte: Int?,
+        @QueryParam("nameIn") nameIn: List<String>?,
+        @QueryParam("coordinateXGte") coordinateXGte: Int?,
+        @QueryParam("coordinateXLte") coordinateXLte: Int?,
+        @QueryParam("coordinateYGte") coordinateYGte: Double?,
+        @QueryParam("coordinateYLte") coordinateYLte: Double?,
+        @QueryParam("creationDateGte") creationDateGte: Date?,
+        @QueryParam("creationDateLte") creationDateLte: Date?,
+        @QueryParam("realHero") realHero: Boolean?,
+        @QueryParam("hasToothpick") hasToothpick: Boolean?,
+        @QueryParam("impactSpeedGte") impactSpeedGte: Float?,
+        @QueryParam("impactSpeedLte") impactSpeedLte: Float?,
+        @QueryParam("minutesOfWaitingGte") minutesOfWaitingGte: Long?,
+        @QueryParam("minutesOfWaitingLte") minutesOfWaitingLte: Long?,
+        @QueryParam("coolCar") coolCar: Boolean?,
+        @QueryParam("moodIn") moodIn: List<String>?,
+        @QueryParam("weaponTypeIn") weaponTypeIn: List<String>?,
+        @QueryParam("page") page: Int?,
+        @QueryParam("size") size: Int?,
+        @QueryParam("sortFields") sortFields: List<String>?,
+        @QueryParam("sortDirections") sortDirections: List<SortOrderDto>?
+    ): Response? {
+        DatabaseConfig.getConnection().use { connection ->
+            val params = mutableListOf<Any?>()
+            val whereClauses = mutableListOf<String>()
+            val orderClauses = mutableListOf<String>()
+
+            val baseSQL = StringBuilder("""
+            SELECT hb.id, hb.name, hb.realHero, hb.hasToothpick, hb.impactSpeed, hb.minutesOfWaiting,
+                   hb.weaponType, hb.mood, hb.creationDate,
+                   c.x AS coord_x, c.y AS coord_y,
+                   car.cool AS car_cool
+            FROM HumanBeing hb
+            JOIN Coordinates c ON hb.coordinates_id = c.id
+            JOIN Car car ON hb.car_id = car.id
+        """.trimIndent())
+
+            // Building WHERE clauses based on provided filters
+            idGte?.let {
+                whereClauses.add("hb.id >= ?")
+                params.add(it)
+            }
+            idLte?.let {
+                whereClauses.add("hb.id <= ?")
+                params.add(it)
+            }
+            nameIn?.takeIf { it.isNotEmpty() }?.let {
+                whereClauses.add("hb.name IN (${it.joinToString(",") { "?" }})")
+                params.addAll(it)
+            }
+            coordinateXGte?.let {
+                whereClauses.add("c.x >= ?")
+                params.add(it)
+            }
+            coordinateXLte?.let {
+                whereClauses.add("c.x <= ?")
+                params.add(it)
+            }
+            coordinateYGte?.let {
+                whereClauses.add("c.y >= ?")
+                params.add(it)
+            }
+            coordinateYLte?.let {
+                whereClauses.add("c.y <= ?")
+                params.add(it)
+            }
+            creationDateGte?.let {
+                whereClauses.add("hb.creationDate >= ?")
+                params.add(it)
+            }
+            creationDateLte?.let {
+                whereClauses.add("hb.creationDate <= ?")
+                params.add(it)
+            }
+            realHero?.let {
+                whereClauses.add("hb.realHero = ?")
+                params.add(it)
+            }
+            hasToothpick?.let {
+                whereClauses.add("hb.hasToothpick = ?")
+                params.add(it)
+            }
+            impactSpeedGte?.let {
+                whereClauses.add("hb.impactSpeed >= ?")
+                params.add(it)
+            }
+            impactSpeedLte?.let {
+                whereClauses.add("hb.impactSpeed <= ?")
+                params.add(it)
+            }
+            minutesOfWaitingGte?.let {
+                whereClauses.add("hb.minutesOfWaiting >= ?")
+                params.add(it)
+            }
+            minutesOfWaitingLte?.let {
+                whereClauses.add("hb.minutesOfWaiting <= ?")
+                params.add(it)
+            }
+            coolCar?.let {
+                whereClauses.add("car.cool = ?")
+                params.add(it)
+            }
+            moodIn?.takeIf { it.isNotEmpty() }?.let { moods ->
+                val placeholders = moods.joinToString(",") { "?::mood" } // Explicit cast to mood enum
+                whereClauses.add("hb.mood IN ($placeholders)")
+                params.addAll(moods)
+            }
+            weaponTypeIn?.takeIf { it.isNotEmpty() }?.let { weaponTypes ->
+                val placeholders = weaponTypes.joinToString(",") { "?::weapon_type" } // Explicit cast to weapon_type enum
+                whereClauses.add("hb.weaponType IN ($placeholders)")
+                params.addAll(weaponTypes)
+            }
+
+            // Building ORDER BY clause
+            sortFields?.let { fields ->
+                val directions = sortDirections ?: List(fields.size) { SortOrderDto.ASC }
+                fields.forEachIndexed { index, field ->
+                    val direction = directions.getOrNull(index) ?: SortOrderDto.ASC
+                    // Sanitize the field name to prevent SQL injection
+                    val sanitizedField = when (field) {
+                        "id", "name", "realHero", "hasToothpick", "impactSpeed", "minutesOfWaiting", "weaponType", "mood", "creationDate" -> "hb.$field"
+                        "coordinateX" -> "c.x"
+                        "coordinateY" -> "c.y"
+                        "carCool" -> "car.cool"
+                        else -> throw IllegalArgumentException("Invalid sort field: $field")
+                    }
+                    orderClauses.add("$sanitizedField ${direction.name}")
+                }
+            }
+
+            // Assemble the final SQL query
+            if (whereClauses.isNotEmpty()) {
+                baseSQL.append(" WHERE ")
+                baseSQL.append(whereClauses.joinToString(" AND "))
+            }
+
+            if (orderClauses.isNotEmpty()) {
+                baseSQL.append(" ORDER BY ")
+                baseSQL.append(orderClauses.joinToString(", "))
+            }
+
+            // Pagination
+            page?.let { p ->
+                size?.let { s ->
+                    baseSQL.append(" LIMIT ? OFFSET ?")
+                    params.add(s)
+                    params.add((p - 1) * s)
+                }
+            }
+
+            try {
+                connection.prepareStatement(baseSQL.toString()).use { stmt ->
+                    params.forEachIndexed { index, param ->
+                        stmt.setObject(index + 1, param)
+                    }
+
+                    val rs = stmt.executeQuery()
+                    val humanBeings = mutableListOf<HumanBeingDto>()
+
+                    while (rs.next()) {
+                        val humanBeing = HumanBeingDto(
+                            id = rs.getInt("id"),
+                            name = rs.getString("name"),
+                            realHero = rs.getBoolean("realHero"),
+                            hasToothpick = rs.getBoolean("hasToothpick"),
+                            impactSpeed = rs.getFloat("impactSpeed"),
+                            minutesOfWaiting = rs.getDouble("minutesOfWaiting"),
+                            weaponType = rs.getString("weaponType"),
+                            mood = rs.getString("mood"),
+                            creationDate = rs.getDate("creationDate"),
+                            coordinates = CoordinatesDto(
+                                x = rs.getInt("coord_x"),
+                                y = rs.getLong("coord_y")
+                            ),
+                            car = CarDto(
+                                cool = rs.getBoolean("car_cool")
+                            )
+                        )
+                        humanBeings.add(humanBeing)
+                    }
+
+                    return Response.ok(AllResponseDto(humanBeings)).type(MediaType.APPLICATION_XML_TYPE).build()
+                }
+            } catch (ex: Exception) {
+                ex.printStackTrace()
+                return Response.status(500).entity(ex.message).build()
+            }
+        }
+
     }
 
     @Consumes(MediaType.APPLICATION_XML)
@@ -141,20 +332,295 @@ open class HumanWebServiceImpl : HumanWebService {
     }
 
 
-    override fun getHumanBeingById(id: Int): HumanBeingDto {
-        TODO("Not yet implemented")
+    override fun getHumanBeingById(id: Int): Response? {
+
+        DatabaseConfig.getConnection().use { connection ->
+            val sql = """
+            SELECT hb.id, hb.name, hb.realHero, hb.hasToothpick, hb.impactSpeed, hb.minutesOfWaiting, hb.creationdate,
+                   hb.weaponType, hb.mood,
+                   c.x AS coord_x, c.y AS coord_y,
+                   car.cool AS car_cool
+            FROM HumanBeing hb
+            JOIN Coordinates c ON hb.coordinates_id = c.id
+            JOIN Car car ON hb.car_id = car.id
+            WHERE hb.id = ?
+        """.trimIndent()
+
+            try {
+                connection.prepareStatement(sql).use { stmt ->
+                    stmt.setInt(1, id)
+                    val rs = stmt.executeQuery()
+                    if (rs.next()) {
+                        val humanBeing = HumanBeingDto(
+                            rs.getInt("id"),
+                            rs.getString("name"),
+                            CoordinatesDto(
+                                x = rs.getInt("coord_x"),
+                                y = rs.getLong("coord_y")
+                            ),
+                            rs.getDate("creationdate"),
+                            rs.getBoolean("realHero"),
+                            rs.getBoolean("hasToothpick"),
+                            rs.getFloat("impactSpeed"),
+                            rs.getDouble("minutesOfWaiting"),
+                            rs.getString("weaponType"),
+                            rs.getString("mood"),
+                            CarDto(
+                                cool = rs.getBoolean("car_cool")
+                            )
+                        )
+                        return Response.ok(humanBeing).build()
+                    } else {
+                        return Response.status(404).entity("HumanBeing with id $id not found").build()
+                    }
+                }
+            } catch (ex: Exception) {
+                ex.printStackTrace()
+                return Response.status(500).entity(ex.message).build()
+            }
+        }
+
+
     }
 
-    override fun modifyHumanBeing(id: String, request: CreateHumanBeingRequest): HumanBeingDto {
-        TODO("Not yet implemented")
+    override fun modifyHumanBeing(id: String, @Valid request: ModifyHumanBeingRequest): Response? {
+        DatabaseConfig.getConnection().use { connection ->
+            connection.autoCommit = false
+            try {
+                val updateSQL = StringBuilder("UPDATE HumanBeing SET ")
+
+                val params = mutableListOf<Any?>()
+                val columns = mutableListOf<String>()
+
+                request.name?.let {
+                    columns.add("name = ?")
+                    params.add(it)
+                }
+
+                request.realHero?.let {
+                    columns.add("realHero = ?")
+                    params.add(it)
+                }
+
+                request.hasToothpick?.let {
+                    columns.add("hasToothpick = ?")
+                    params.add(it)
+                }
+
+                request.impactSpeed?.let {
+                    columns.add("impactSpeed = ?")
+                    params.add(it)
+                }
+
+                request.minutesOfWaiting?.let {
+                    columns.add("minutesOfWaiting = ?")
+                    params.add(it)
+                }
+
+                request.weaponType?.let {
+                    columns.add("weaponType = ?::weapon_type")
+                    params.add(it)
+                }
+
+                request.mood?.let {
+                    columns.add("mood = ?::mood")
+                    params.add(it)
+                }
+
+                request.coordinates?.let { coordinatesUpdate ->
+                    val coordinatesId = getCoordinatesIdByHumanId(connection, id.toInt())
+
+                    coordinatesUpdate.x?.let { x ->
+                        updateCoordinateField(connection, coordinatesId, "x", x)
+                    }
+                    coordinatesUpdate.y?.let { y ->
+                        updateCoordinateField(connection, coordinatesId, "y", y)
+                    }
+                }
+
+                request.car?.let { carDto ->
+                    val carId = getCarIdByHumanId(connection, id.toInt())
+
+                    carDto.cool?.let { cool ->
+                        updateCarField(connection, carId, "cool", cool)
+                    }
+                }
+
+                if (columns.isNotEmpty()) {
+                    updateSQL.append(columns.joinToString(", "))
+                    updateSQL.append(" WHERE id = ?")
+                    params.add(id.toInt())
+
+                    connection.prepareStatement(updateSQL.toString()).use { stmt ->
+                        params.forEachIndexed { index, param ->
+                            stmt.setObject(index + 1, param)
+                        }
+                        stmt.executeUpdate()
+                    }
+                }
+
+                println(updateSQL)
+
+                connection.commit()
+                return Response.ok().build()
+            } catch (ex: Exception) {
+                connection.rollback()
+                ex.printStackTrace()
+                return Response.status(404).entity(ex.message).build()
+            } finally {
+                connection.autoCommit = true
+            }
+        }
     }
 
-    override fun getHumanStats(field: Optional<StatisticFieldDto>?, operation: Optional<StatisticOperationDto>?): StatisticResponseDto {
-        TODO("Not yet implemented")
+    // Функция для обновления отдельного поля Coordinates
+    private fun updateCoordinateField(conn: Connection, coordinatesId: Int, field: String, value: Any) {
+        val sql = "UPDATE Coordinates SET $field = ? WHERE id = ?"
+        conn.prepareStatement(sql).use { stmt ->
+            stmt.setObject(1, value)
+            stmt.setInt(2, coordinatesId)
+            stmt.executeUpdate()
+        }
     }
 
-    override fun deleteByParams(limit: Optional<Int>?, request: DeleteHumanBeingRequest): DeleteResponseDto {
-        TODO("Not yet implemented")
+    private fun updateCarField(conn: Connection, carId: Int, field: String, value: Any) {
+        val sql = "UPDATE Car SET $field = ? WHERE id = ?"
+        conn.prepareStatement(sql).use { stmt ->
+            stmt.setObject(1, value)
+            stmt.setInt(2, carId)
+            stmt.executeUpdate()
+        }
+    }
+
+    private fun getCoordinatesIdByHumanId(conn: Connection, humanId: Int): Int {
+        val sql = "SELECT coordinates_id FROM HumanBeing WHERE id = ?"
+        conn.prepareStatement(sql).use { stmt ->
+            stmt.setInt(1, humanId)
+            val rs = stmt.executeQuery()
+            if (rs.next()) {
+                return rs.getInt("coordinates_id")
+            } else {
+                throw Exception("Не удалось найти coordinates_id для HumanBeing с id = $humanId")
+            }
+        }
+    }
+
+    private fun getCarIdByHumanId(conn: Connection, humanId: Int): Int {
+        val sql = "SELECT car_id FROM HumanBeing WHERE id = ?"
+        conn.prepareStatement(sql).use { stmt ->
+            stmt.setInt(1, humanId)
+            val rs = stmt.executeQuery()
+            if (rs.next()) {
+                return rs.getInt("car_id")
+            } else {
+                throw Exception("Не удалось найти car_id для HumanBeing с id = $humanId")
+            }
+        }
+    }
+
+    override fun getHumanStats(field: Optional<StatisticFieldDto>?, operation: Optional<StatisticOperationDto>?): Response? {
+
+        val selectedField = field?.orElse(null) ?: throw BadRequestException("field parameter is required (IMPACT_SPEED / MINUTES_OF_WAITING)")
+        val selectedOperation = operation?.orElse(null) ?: throw BadRequestException("operation parameter is required (MEAN / MAX / MIN)")
+
+        val fieldColumn = when (selectedField) {
+            StatisticFieldDto.IMPACT_SPEED -> "impactSpeed"
+            StatisticFieldDto.MINUTES_OF_WAITING -> "minutesOfWaiting"
+        }
+
+        val sqlFunction = when (selectedOperation) {
+            StatisticOperationDto.MEAN -> "AVG"
+            StatisticOperationDto.MIN -> "MIN"
+            StatisticOperationDto.MAX -> "MAX"
+        }
+
+        val sql = "SELECT $sqlFunction($fieldColumn) as result FROM HumanBeing"
+
+        DatabaseConfig.getConnection().use { connection ->
+            try {
+                connection.prepareStatement(sql).use { stmt ->
+                    val rs = stmt.executeQuery()
+                    if (rs.next()) {
+                        val result = rs.getDouble("result")
+                        return Response.ok().entity(StatisticResponseDto(result = result)).type(MediaType.APPLICATION_XML_TYPE).build()
+                    } else {
+                        return Response.ok().entity(StatisticResponseDto(result = null)).type(MediaType.APPLICATION_XML_TYPE).build()
+                    }
+                }
+            } catch (ex: Exception) {
+                ex.printStackTrace()
+                throw InternalServerErrorException(ex.message)
+            }
+        }
+
+    }
+
+    @Produces(MediaType.APPLICATION_XML)
+    @DELETE
+    @Path("/human-being")
+    override fun deleteByParams(
+        @QueryParam("carCool") carCool: Boolean?,
+        @QueryParam("impactSpeed") impactSpeed: Float?,
+        @QueryParam("limit") @PositiveOrZero @Valid limit: Int?
+    ): Response? {
+
+        DatabaseConfig.getConnection().use { connection ->
+            connection.autoCommit = false
+            try {
+                val params = mutableListOf<Any?>()
+                val deleteSQL = StringBuilder()
+                deleteSQL.append("DELETE FROM HumanBeing WHERE id IN (")
+                deleteSQL.append("SELECT HumanBeing.id FROM HumanBeing")
+
+                if (carCool != null) {
+                    deleteSQL.append(" JOIN Car ON HumanBeing.car_id = Car.id")
+                }
+
+                val whereClauses = mutableListOf<String>()
+
+                if (carCool != null) {
+                    whereClauses.add("Car.cool = ?")
+                    params.add(carCool)
+                }
+
+                if (impactSpeed != null) {
+                    whereClauses.add("HumanBeing.impactSpeed = ?")
+                    params.add(impactSpeed)
+                }
+
+                if (whereClauses.isNotEmpty()) {
+                    deleteSQL.append(" WHERE ")
+                    deleteSQL.append(whereClauses.joinToString(" AND "))
+                }
+
+                if (limit != null) {
+                    deleteSQL.append(" LIMIT ?")
+                    params.add(limit)
+                }
+
+                deleteSQL.append(")")
+
+                println(deleteSQL)
+
+                connection.prepareStatement(deleteSQL.toString()).use { stmt ->
+                    params.forEachIndexed { index, param ->
+                        stmt.setObject(index + 1, param)
+                    }
+                    val rowsAffected = stmt.executeUpdate()
+                    println("Deleted Rows: $rowsAffected")
+                }
+
+                connection.commit()
+                return Response.ok().build()
+            } catch (ex: Exception) {
+                connection.rollback()
+                ex.printStackTrace()
+                return Response.status(500).entity(ex.message).build()
+            } finally {
+                connection.autoCommit = true
+            }
+        }
+
     }
 
 }
