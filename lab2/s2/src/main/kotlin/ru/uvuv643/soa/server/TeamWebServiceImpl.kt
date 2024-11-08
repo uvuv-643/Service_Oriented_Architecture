@@ -6,9 +6,12 @@ import jakarta.ws.rs.core.Response
 import ru.uvuv643.soa.api.v1.TeamWebService
 import ru.uvuv643.soa.api.v1.dto.human.ListHumanBeingDto
 import ru.uvuv643.soa.api.v1.dto.human.PairTeamHumanDto
-import java.net.HttpURLConnection
 import java.net.URL
-import javax.net.ssl.HttpsURLConnection
+import java.security.GeneralSecurityException
+import java.security.SecureRandom
+import java.security.cert.X509Certificate
+import javax.net.ssl.*
+
 
 @Path("/v1/team/")
 open class TeamWebServiceImpl : TeamWebService {
@@ -72,6 +75,36 @@ open class TeamWebServiceImpl : TeamWebService {
     }
 
     override fun makeTeamDepressive(teamId: Int): Response? {
+
+        System.setProperty("javax.net.debug", "ssl,handshake")
+
+//        val keystorePath = "/certs/keystore.jks"
+//        val truststorePath = "/certs/truststore.jks"
+//        val password = "changeit".toCharArray()
+//
+//        val sslContext = SSLContext.getInstance("TLS")
+//        FileInputStream(keystorePath).use { keyStoreStream ->
+//            FileInputStream(truststorePath).use { trustStoreStream ->
+//                val keyStore = java.security.KeyStore.getInstance(java.security.KeyStore.getDefaultType())
+//                keyStore.load(keyStoreStream, password)
+//
+//                val trustStore = java.security.KeyStore.getInstance(java.security.KeyStore.getDefaultType())
+//                trustStore.load(trustStoreStream, password)
+//
+//                val keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm())
+//                keyManagerFactory.init(keyStore, password)
+//
+//                val trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
+//                trustManagerFactory.init(trustStore)
+//
+//                sslContext.init(keyManagerFactory.keyManagers, trustManagerFactory.trustManagers, null)
+//            }
+//        }
+//
+//        HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.socketFactory)
+
+
+        HttpsURLConnection.setDefaultHostnameVerifier { hostname: String?, session: SSLSession? -> true }
         DatabaseConfig.getConnection().use { connection ->
             val heroIds = mutableListOf<Int>()
 
@@ -93,13 +126,41 @@ open class TeamWebServiceImpl : TeamWebService {
                 val xmlPayload = """
                 <?xml version="1.0" encoding="UTF-8"?>
                     <modifyHumanBeingRequest>
-                        <mood>RAGE</mood>
+                        <mood>SORROW</mood>
                     </modifyHumanBeingRequest>
                 """.trimIndent()
 
+
+                // Create a trust manager that does not validate certificate chains
+                val trustAllCerts = arrayOf<TrustManager>(object : X509TrustManager {
+                    override fun getAcceptedIssuers(): Array<X509Certificate?> {
+                        return arrayOfNulls(0)
+                    }
+
+                    override fun checkClientTrusted(
+                        certs: Array<X509Certificate>, authType: String
+                    ) {
+                    }
+
+                    override fun checkServerTrusted(
+                        certs: Array<X509Certificate>, authType: String
+                    ) {
+                    }
+                }
+                )
+
+
+                try {
+                    val sc = SSLContext.getInstance("SSL")
+                    sc.init(null, trustAllCerts, SecureRandom())
+                    HttpsURLConnection.setDefaultSSLSocketFactory(sc.socketFactory)
+                } catch (e: GeneralSecurityException) {
+                }
+
+
                 for (heroId in heroIds) {
-                    val url = URL("http://payara:8080/s1-1.0-SNAPSHOT/api/v1/human-being/$heroId")
-                    val httpsConnection = url.openConnection() as HttpURLConnection
+                    val url = URL("https://payara:8181/s1-1.0-SNAPSHOT/api/v1/human-being/$heroId")
+                    val httpsConnection = url.openConnection() as HttpsURLConnection
 
                     httpsConnection.requestMethod = "PUT"
                     httpsConnection.setRequestProperty("Content-Type", "application/xml")

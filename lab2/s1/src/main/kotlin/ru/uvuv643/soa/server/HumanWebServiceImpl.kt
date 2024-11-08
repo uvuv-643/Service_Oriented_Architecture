@@ -10,16 +10,15 @@ import ru.uvuv643.soa.api.v1.dto.enums.*
 import ru.uvuv643.soa.api.v1.dto.human.CarDto
 import ru.uvuv643.soa.api.v1.dto.human.CoordinatesDto
 import ru.uvuv643.soa.api.v1.dto.human.HumanBeingDto
-import ru.uvuv643.soa.api.v1.dto.human.ListHumanBeingDto
 import ru.uvuv643.soa.api.v1.dto.human.request.CreateHumanBeingRequest
-import ru.uvuv643.soa.api.v1.dto.human.request.DeleteHumanBeingRequest
 import ru.uvuv643.soa.api.v1.dto.human.request.ModifyHumanBeingRequest
 import ru.uvuv643.soa.api.v1.dto.human.response.AllResponseDto
 import ru.uvuv643.soa.api.v1.dto.human.response.StatisticResponseDto
 import java.sql.Connection
 import java.sql.Types
+import java.text.ParseException
+import java.text.SimpleDateFormat
 import java.util.*
-
 
 
 fun insertHumanBeing(connection: Connection, human: HumanBeingDto) {
@@ -114,8 +113,8 @@ open class HumanWebServiceImpl : HumanWebService {
         @QueryParam("coordinateXLte") coordinateXLte: Int?,
         @QueryParam("coordinateYGte") coordinateYGte: Double?,
         @QueryParam("coordinateYLte") coordinateYLte: Double?,
-        @QueryParam("creationDateGte") creationDateGte: Date?,
-        @QueryParam("creationDateLte") creationDateLte: Date?,
+        @QueryParam("creationDateGte") creationDateGte: String?,
+        @QueryParam("creationDateLte") creationDateLte: String?,
         @QueryParam("realHero") realHero: Boolean?,
         @QueryParam("hasToothpick") hasToothpick: Boolean?,
         @QueryParam("impactSpeedGte") impactSpeedGte: Float?,
@@ -130,6 +129,17 @@ open class HumanWebServiceImpl : HumanWebService {
         @QueryParam("sortFields") sortFields: List<String>?,
         @QueryParam("sortDirections") sortDirections: List<SortOrderDto>?
     ): Response? {
+
+        val sdf = SimpleDateFormat("yyyy-MM-dd")
+        sdf.timeZone = TimeZone.getTimeZone("UTC")
+        try {
+            if (creationDateGte != null) sdf.parse(creationDateGte)
+            if (creationDateLte != null) sdf.parse(creationDateLte)
+        } catch (e: ParseException) {
+            e.printStackTrace()
+            return Response.status(400).entity("yyyy-MM-dd - корректный формат для даты").type(MediaType.APPLICATION_XML_TYPE).build()
+        }
+
         DatabaseConfig.getConnection().use { connection ->
             val params = mutableListOf<Any?>()
             val whereClauses = mutableListOf<String>()
@@ -175,11 +185,11 @@ open class HumanWebServiceImpl : HumanWebService {
                 params.add(it)
             }
             creationDateGte?.let {
-                whereClauses.add("hb.creationDate >= ?")
+                whereClauses.add("hb.creationDate >= CAST(? AS DATE)")
                 params.add(it)
             }
             creationDateLte?.let {
-                whereClauses.add("hb.creationDate <= ?")
+                whereClauses.add("hb.creationDate <= CAST(? AS DATE)")
                 params.add(it)
             }
             realHero?.let {
@@ -257,6 +267,8 @@ open class HumanWebServiceImpl : HumanWebService {
                     params.add((p - 1) * s)
                 }
             }
+
+            println(baseSQL)
 
             try {
                 connection.prepareStatement(baseSQL.toString()).use { stmt ->

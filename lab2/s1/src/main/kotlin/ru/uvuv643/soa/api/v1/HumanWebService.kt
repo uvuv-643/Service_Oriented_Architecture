@@ -18,6 +18,8 @@ import ru.uvuv643.soa.api.v1.dto.human.request.DeleteHumanBeingRequest
 import ru.uvuv643.soa.api.v1.dto.human.request.ModifyHumanBeingRequest
 import ru.uvuv643.soa.api.v1.dto.human.response.DeleteResponseDto
 import ru.uvuv643.soa.api.v1.dto.human.response.StatisticResponseDto
+import java.time.Instant
+import java.time.OffsetDateTime
 import java.util.*
 
 @Tag(name = "Person Resource", description = "API to manage Person resources")
@@ -53,8 +55,8 @@ interface HumanWebService {
         @QueryParam("coordinateXLte") coordinateXLte: Int?,
         @QueryParam("coordinateYGte") coordinateYGte: Double?,
         @QueryParam("coordinateYLte") coordinateYLte: Double?,
-        @QueryParam("creationDateGte") creationDateGte: Date?,
-        @QueryParam("creationDateLte") creationDateLte: Date?,
+        @QueryParam("creationDateGte") creationDateGte: String?,
+        @QueryParam("creationDateLte") creationDateLte: String?,
         @QueryParam("realHero") realHero: Boolean?,
         @QueryParam("hasToothpick") hasToothpick: Boolean?,
         @QueryParam("impactSpeedGte") impactSpeedGte: Float?,
