@@ -108,10 +108,12 @@ open class TeamWebServiceImpl : TeamWebService {
         DatabaseConfig.getConnection().use { connection ->
             val heroIds = mutableListOf<Int>()
 
-            val getHeroIdsSQL = "SELECT hero_id FROM team_heroes"
+            val getHeroIdsSQL = "SELECT hero_id FROM team_heroes WHERE team_id = ?"
 
             try {
+
                 connection.prepareStatement(getHeroIdsSQL).use { stmt ->
+                    stmt.setInt(1, teamId)
                     val rs = stmt.executeQuery()
                     while (rs.next()) {
                         heroIds.add(rs.getInt("hero_id"))

@@ -14,12 +14,9 @@ import ru.uvuv643.soa.api.v1.dto.enums.*
 import ru.uvuv643.soa.api.v1.dto.human.HumanBeingDto
 import ru.uvuv643.soa.api.v1.dto.human.ListHumanBeingDto
 import ru.uvuv643.soa.api.v1.dto.human.request.CreateHumanBeingRequest
-import ru.uvuv643.soa.api.v1.dto.human.request.DeleteHumanBeingRequest
 import ru.uvuv643.soa.api.v1.dto.human.request.ModifyHumanBeingRequest
 import ru.uvuv643.soa.api.v1.dto.human.response.DeleteResponseDto
 import ru.uvuv643.soa.api.v1.dto.human.response.StatisticResponseDto
-import java.time.Instant
-import java.time.OffsetDateTime
 import java.util.*
 
 @Tag(name = "Person Resource", description = "API to manage Person resources")
