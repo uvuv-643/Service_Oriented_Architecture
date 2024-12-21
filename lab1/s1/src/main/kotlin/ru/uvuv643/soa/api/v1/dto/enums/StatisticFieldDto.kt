@@ -4,5 +4,5 @@ import io.swagger.v3.oas.annotations.media.Schema
 
 @Schema(title = "Statistic field DTO")
 enum class StatisticFieldDto {
-    AVERAGE_SPEED, MINUTES_OF_WAITING
+    IMPACT_SPEED, MINUTES_OF_WAITING
 }

@@ -16,43 +16,40 @@ import ru.uvuv643.soa.api.v1.dto.human.CarDto
 import ru.uvuv643.soa.api.v1.dto.human.CoordinatesDto
 
 
-@JacksonXmlRootElement
+@JacksonXmlRootElement(namespace = "modifyHumanBeingRequest")
+@Schema(name = "modifyHumanBeingRequest")
 data class ModifyHumanBeingRequest constructor(
 
         @field:Valid
-        @field:NotNull
         @field:Size(min = 1, message = "String must be non-empty")
         @field:Schema(
                 description = "Name of Human Being",
-                required = true,
+                required = false,
         )
         @param:JacksonXmlProperty(namespace = "name")
         val name: String?,
 
         @field:Valid
-        @field:NotNull
         @param:JacksonXmlProperty(namespace = "coordinates")
         @field:Schema(
                 description = "Coordinates information",
-                required = true,
+                required = false,
         )
         val coordinates: CoordinatesDto,
 
         @field:Valid
-        @field:NotNull
         @field:Schema(
                 description = "Is real hero?",
-                required = true,
+                required = false,
         )
         @XmlAttribute
         @param:JacksonXmlProperty(isAttribute = true, namespace = "realHero")
         val realHero: Boolean?,
 
         @field:Valid
-        @field:NotNull
         @field:Schema(
                 description = "Does hero have a toothpick?",
-                required = true,
+                required = false,
         )
         @XmlAttribute
         @param:JacksonXmlProperty(isAttribute = true, namespace = "hasToothpick")
@@ -64,17 +61,16 @@ data class ModifyHumanBeingRequest constructor(
         @field:Nullable
         @field:Schema(
                 description = "Impact Speed",
-                required = true,
+                required = false,
         )
         @param:JacksonXmlProperty(namespace = "impactSpeed")
         val impactSpeed: Float?,
 
         @field:Valid
-        @field:NotNull
         @field:Min(0, message = "Time must be non-negative")
         @field:Schema(
                 description = "Minutes of waiting",
-                required = true,
+                required = false,
         )
         @param:JacksonXmlProperty(namespace = "minutesOfWaiting")
         val minutesOfWaiting: Long?,
@@ -84,7 +80,7 @@ data class ModifyHumanBeingRequest constructor(
         @param:JacksonXmlProperty(namespace = "car")
         @field:Schema(
                 description = "Car information",
-                required = true,
+                required = false,
         )
         val car: CarDto,
 
@@ -93,7 +89,7 @@ data class ModifyHumanBeingRequest constructor(
         @param:JacksonXmlProperty(namespace = "mood")
         @field:Schema(
                 description = "Mood type",
-                required = true,
+                required = false,
         )
         val mood: MoodDto,
 
@@ -102,7 +98,7 @@ data class ModifyHumanBeingRequest constructor(
         @param:JacksonXmlProperty(namespace = "weaponType")
         @field:Schema(
                 description = "Weapon Type",
-                required = true,
+                required = false,
         )
         val weaponType: WeaponTypeDto,
 

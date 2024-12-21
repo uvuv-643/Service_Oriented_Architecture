@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.validation.Valid
+import jakarta.validation.constraints.PositiveOrZero
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
@@ -13,6 +14,7 @@ import ru.uvuv643.soa.api.v1.dto.human.HumanBeingDto
 import ru.uvuv643.soa.api.v1.dto.human.ListHumanBeingDto
 import ru.uvuv643.soa.api.v1.dto.human.request.CreateHumanBeingRequest
 import ru.uvuv643.soa.api.v1.dto.human.request.DeleteHumanBeingRequest
+import ru.uvuv643.soa.api.v1.dto.human.request.ModifyHumanBeingRequest
 import ru.uvuv643.soa.api.v1.dto.human.response.DeleteResponseDto
 import ru.uvuv643.soa.api.v1.dto.human.response.StatisticResponseDto
 import java.util.*
@@ -61,8 +63,8 @@ interface HumanWebService {
             @RequestParam(name = "weaponTypeIn", required = false) weaponTypeIn : Optional<List<WeaponTypeDto>>,
             @RequestParam(name = "page", required = false) page : Optional<Int>,
             @RequestParam(name = "size", required = false) size : Optional<Int>,
-            @RequestParam(name = "sortDirection", required = false) sortDirection : Optional<SortOrderDto>,
-            @RequestParam(name = "sortField", required = false) sortField : Optional<String>,
+            @RequestParam(name = "sortDirections", required = false) sortDirections : List<String>,
+            @RequestParam(name = "sortFields", required = false) sortFields : List<String>,
     ) : ListHumanBeingDto
 
     @PostMapping("/human-being", consumes = ["application/xml"], produces = ["application/xml"])
@@ -138,8 +140,8 @@ interface HumanWebService {
             ]
     )
     fun modifyHumanBeing(
-            @PathVariable id: String,
-            @Valid @RequestBody request: CreateHumanBeingRequest,
+        @PathVariable id: String,
+        @Valid @RequestBody request: ModifyHumanBeingRequest,
     ) : HumanBeingDto
 
     @GetMapping("/human-being/stats", produces = ["application/xml"])
@@ -174,7 +176,7 @@ interface HumanWebService {
                 ApiResponse(
                         responseCode = "200",
                         description = "Result of delete operation",
-                        content = [Content(schema = Schema(implementation = DeleteResponseDto::class))]
+                        content = [Content()]
                 ),
                 ApiResponse(
                         responseCode = "400",
@@ -184,8 +186,9 @@ interface HumanWebService {
             ]
     )
     fun deleteByParams(
-            @RequestParam(name = "limit", required = false) field : Optional<Int>,
-            @Valid @RequestBody request: DeleteHumanBeingRequest,
-    ) : DeleteResponseDto
+        @RequestParam("carCool") carCool: Boolean?,
+        @RequestParam("impactSpeed") impactSpeed: Float?,
+        @RequestParam("limit") @PositiveOrZero @Valid limit: Int?
+    ): ResponseBody
 
 }

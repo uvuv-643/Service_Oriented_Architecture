@@ -7,7 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
 import ru.uvuv643.soa.api.v1.dto.enums.*
-import ru.uvuv643.soa.api.v1.dto.human.ListHumanBeingDto
+import ru.uvuv643.soa.api.v1.dto.human.response.ListHumanBeingDto
 import ru.uvuv643.soa.api.v1.dto.human.response.TeamResponseDto
 import java.util.*
 
@@ -15,6 +15,26 @@ import java.util.*
 @RequestMapping("/v1/team/")
 @Validated
 interface TeamWebService {
+
+    @GetMapping("/",  produces = ["application/xml"])
+    @Operation(
+        summary = "Get heroes in the team",
+        tags = ["team"],
+        description = "Get heroes in the team in pairs",
+        responses = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Human Being were added to the team. List of the team provided.",
+                content = [Content(schema = Schema(implementation = ListHumanBeingDto::class))]
+            ),
+            ApiResponse(
+                responseCode = "415",
+                description = "Content-Type header must be specified as XML in request",
+                content = [Content()]
+            )
+        ]
+    )
+    fun getHeroes(): ListHumanBeingDto
 
     @PostMapping("/{team-id}/add/{hero-id}", produces = ["application/xml"])
     @Operation(

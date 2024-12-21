@@ -78,32 +78,6 @@ open class TeamWebServiceImpl : TeamWebService {
 
         System.setProperty("javax.net.debug", "ssl,handshake")
 
-//        val keystorePath = "/certs/keystore.jks"
-//        val truststorePath = "/certs/truststore.jks"
-//        val password = "changeit".toCharArray()
-//
-//        val sslContext = SSLContext.getInstance("TLS")
-//        FileInputStream(keystorePath).use { keyStoreStream ->
-//            FileInputStream(truststorePath).use { trustStoreStream ->
-//                val keyStore = java.security.KeyStore.getInstance(java.security.KeyStore.getDefaultType())
-//                keyStore.load(keyStoreStream, password)
-//
-//                val trustStore = java.security.KeyStore.getInstance(java.security.KeyStore.getDefaultType())
-//                trustStore.load(trustStoreStream, password)
-//
-//                val keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm())
-//                keyManagerFactory.init(keyStore, password)
-//
-//                val trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
-//                trustManagerFactory.init(trustStore)
-//
-//                sslContext.init(keyManagerFactory.keyManagers, trustManagerFactory.trustManagers, null)
-//            }
-//        }
-//
-//        HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.socketFactory)
-
-
         HttpsURLConnection.setDefaultHostnameVerifier { hostname: String?, session: SSLSession? -> true }
         DatabaseConfig.getConnection().use { connection ->
             val heroIds = mutableListOf<Int>()

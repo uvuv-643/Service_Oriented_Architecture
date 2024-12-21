@@ -15,7 +15,8 @@ import ru.uvuv643.soa.api.v1.dto.enums.WeaponTypeDto
 import ru.uvuv643.soa.api.v1.dto.human.CarDto
 import ru.uvuv643.soa.api.v1.dto.human.CoordinatesDto
 
-@JacksonXmlRootElement
+@JacksonXmlRootElement(namespace = "createHumanBeingRequest")
+@Schema(name = "createHumanBeingRequest")
 data class CreateHumanBeingRequest constructor(
 
         @field:Valid

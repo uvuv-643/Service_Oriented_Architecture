@@ -51,7 +51,7 @@ export function isMinValue(str: string | null, limit: number): boolean {
  * @returns `true` if the string matches the yyyy-mm-dd format and is a valid date, otherwise `false`.
  */
 export function isValidDate(str: string | null): boolean {
-    if (str === null) return true;
+    if (!str) return true;
     const regex = /^\d{4}-\d{2}-\d{2}$/;
     if (!regex.test(str)) return false;
 

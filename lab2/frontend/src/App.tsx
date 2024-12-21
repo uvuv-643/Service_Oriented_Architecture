@@ -1,14 +1,19 @@
 /* eslint-disable complexity */
 /* eslint-disable import/no-extraneous-dependencies */
-import {useEffect, useState} from 'react';
+import {useEffect, useMemo, useState} from 'react';
 import {Wrapper} from './components/Wrapper';
 
-import {Alert, Button, Modal, Select, Switch, Table, TextInput} from '@gravity-ui/uikit';
+import {Alert, Button, Dialog, Select, Switch, Table, TextInput} from '@gravity-ui/uikit';
 import axios from 'axios';
-
+import {CircleXmarkFill, LockOpen, PencilToSquare, PersonPlanetEarth} from '@gravity-ui/icons';
 import {Buffer} from 'buffer';
-import {PencilToSquare, PersonPlanetEarth} from '@gravity-ui/icons';
-import {TeamMember, convertToJsonXml, parseAllRequestFromXml} from './utils/xmlResponseParser';
+import {
+    TeamMap,
+    TeamMember,
+    convertToJsonXml,
+    parseAllRequestFromXml,
+    parseTeamResponse,
+} from './utils/xmlResponseParser';
 import {isDouble, isInteger, isMaxValue, isMinValue, isValidDate} from './utils/validation';
 import {xml2js} from 'xml-js';
 
@@ -60,18 +65,19 @@ const App = () => {
     const [data, setData] = useState<TeamMember[]>([]);
 
     const columns = [
-        {id: 'id', title: 'ID'},
-        {id: 'name', title: 'Name'},
-        {id: 'coordinates', title: 'Coordinates'},
-        {id: 'creationDate', title: 'Creation Date'},
-        {id: 'realHero', title: 'Real Hero'},
-        {id: 'hasToothpick', title: 'Has Toothpick'},
-        {id: 'impactSpeed', title: 'Impact Speed'},
-        {id: 'minutesOfWaiting', title: 'Minutes of Waiting'},
-        {id: 'weaponType', title: 'Weapon Type'},
-        {id: 'mood', title: 'Mood'},
-        {id: 'carCool', title: 'Car Cool'},
-        {id: 'actions', title: 'Actions'},
+        {id: 'id', name: 'ИД'},
+        {id: 'name', name: 'Имя'},
+        {id: 'coordinates', name: 'Координаты'},
+        {id: 'creationDate', name: 'Создан'},
+        {id: 'realHero', name: 'Герой?'},
+        {id: 'hasToothpick', name: 'Зубная щетка?'},
+        {id: 'impactSpeed', name: 'Скорость'},
+        {id: 'minutesOfWaiting', name: 'Ожидание'},
+        {id: 'weaponType', name: 'Оружие'},
+        {id: 'mood', name: 'Настроение'},
+        {id: 'carCool', name: 'Крутая тачка?'},
+        {id: 'teams', name: 'Команды'},
+        {id: 'actions', name: ''},
     ];
 
     type TeamMemberCreate = {
@@ -123,71 +129,93 @@ const App = () => {
     const [modifyObject, setModifyObject] = useState<TeamMember>();
     const [team, setTeam] = useState<string>('');
 
-    const tableData = data.map((member) => ({
-        id: member.id,
-        name: member.name,
-        coordinates: `(${member.coordinates.x}; ${member.coordinates.y})`,
-        creationDate:
-            new Date(member.creationDate).getDate() +
-            '.' +
-            new Date(member.creationDate).getMonth() +
-            '.' +
-            new Date(member.creationDate).getFullYear(),
-        realHero: member.realHero ? 'Да' : 'Нет',
-        hasToothpick: member.hasToothpick ? 'Да' : 'Нет',
-        impactSpeed: member.impactSpeed,
-        minutesOfWaiting: member.minutesOfWaiting,
-        weaponType: (weaponTypeOptionsTranslate as any)[member.weaponType ?? ''],
-        mood: (moodOptionsTranslate as any)[member.mood ?? ''],
-        carCool: member.carCool ? 'Да' : 'Нет',
-        actions: (
-            <div
-                style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    width: 60,
-                }}
-            >
-                <div style={{cursor: 'pointer'}}>
-                    <PersonPlanetEarth
-                        width={20}
-                        height={20}
+    const [teamData, setTeamData] = useState<TeamMap>({});
+
+    useEffect(() => {
+        axios.get('https://rwfsh39.ru/s2/api/v1/team/heroes').then((response) => {
+            const parsedResponse = parseTeamResponse(response.data);
+            setTeamData(parsedResponse);
+        });
+    }, [data]);
+
+    const [deleteRequestData, setDeleteRequestData] = useState<TeamMember>();
+    const [openDeleteConfirmPopup, setOpenDeleteConfirmPopup] = useState<boolean>(false);
+
+    const tableData = useMemo(() => {
+        return data.map((member) => ({
+            id: member.id,
+            name: member.name,
+            coordinates: `(${member.coordinates.x}; ${member.coordinates.y})`,
+            creationDate:
+                new Date(member.creationDate).getDate() +
+                '.' +
+                new Date(member.creationDate).getMonth() +
+                '.' +
+                new Date(member.creationDate).getFullYear(),
+            realHero: member.realHero ? 'Да' : 'Нет',
+            hasToothpick: member.hasToothpick ? 'Да' : 'Нет',
+            impactSpeed: member.impactSpeed,
+            minutesOfWaiting: member.minutesOfWaiting,
+            weaponType: (weaponTypeOptionsTranslate as any)[member.weaponType ?? ''],
+            mood: (moodOptionsTranslate as any)[member.mood ?? ''],
+            carCool: member.carCool ? 'Да' : 'Нет',
+            teams: teamData[member.id]?.join('; '),
+            actions: (
+                <div
+                    style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        width: 90,
+                    }}
+                >
+                    <div style={{cursor: 'pointer'}}>
+                        <PersonPlanetEarth
+                            width={20}
+                            height={20}
+                            onClick={() => {
+                                setModifyObject(member);
+                                setTeamPopupOpen(true);
+                            }}
+                        />
+                    </div>
+                    <div style={{cursor: 'pointer'}}>
+                        <PencilToSquare
+                            width={20}
+                            height={20}
+                            onClick={() => {
+                                setModifyObject(member);
+                                setCreating({
+                                    name: member.name,
+                                    coordinates: {
+                                        x: member.coordinates.x,
+                                        y: member.coordinates.y,
+                                    },
+                                    realHero: member.realHero,
+                                    hasToothpick: member.hasToothpick,
+                                    impactSpeed: member.impactSpeed,
+                                    minutesOfWaiting: member.minutesOfWaiting,
+                                    weaponType: member.weaponType,
+                                    mood: member.mood,
+                                    carCool: member.carCool,
+                                });
+                                setModifyPopupOpen(true);
+                            }}
+                        />
+                    </div>
+                    <div
+                        style={{cursor: 'pointer'}}
                         onClick={() => {
-                            setModifyObject(member);
-                            setTeamPopupOpen(true);
+                            setDeleteRequestData(member);
+                            setOpenDeleteConfirmPopup(true);
+                            console.log('!@#');
                         }}
-                    />
+                    >
+                        <div></div>
+                    </div>
                 </div>
-                <div style={{cursor: 'pointer'}}>
-                    <PencilToSquare
-                        width={20}
-                        height={20}
-                        onClick={() => {
-                            setModifyObject(member);
-                            setCreating({
-                                name: member.name,
-                                coordinates: {
-                                    x: member.coordinates.x,
-                                    y: member.coordinates.y,
-                                },
-                                realHero: member.realHero,
-                                hasToothpick: member.hasToothpick,
-                                impactSpeed: member.impactSpeed,
-                                minutesOfWaiting: member.minutesOfWaiting,
-                                weaponType: member.weaponType,
-                                mood: member.mood,
-                                carCool: member.carCool,
-                            });
-                            setModifyPopupOpen(true);
-                        }}
-                    />
-                </div>
-                {/* <div style={{cursor: 'pointer'}}>
-                    <TrashBin width={20} height={20} />
-                </div> */}
-            </div>
-        ),
-    }));
+            ),
+        }));
+    }, [data, teamData]);
 
     const [filters, setFilters] = useState<FilterFormData>({
         idGte: null,
@@ -220,7 +248,7 @@ const App = () => {
 
     const [filterErrors, setFilterErrors] = useState<FilterKeys>({});
 
-    const handleFilterUpdate = (e: boolean, field: string) => {
+    const handleFilterUpdate = (e: boolean | null, field: string) => {
         setFilters((prevFilters) => ({
             ...prevFilters,
             [field]: e,
@@ -355,7 +383,9 @@ const App = () => {
             errorObject['minutesOfWaitingLte'] = 'Должно быть числом';
 
         if (!isInteger(filters.page)) errorObject['page'] = 'Должно быть целым числом';
-        if (!isMinValue(filters.page, 0)) errorObject['page'] = 'Должно быть положительным числом';
+        if (!isMinValue(filters.page, 1)) errorObject['page'] = 'Должно быть положительным числом';
+        if (!isMaxValue(filters.page, 110010))
+            errorObject['page'] = 'Должно быть положительным числом';
 
         setFilterErrors(errorObject);
         if (Object.keys(errorObject).length === 0) {
@@ -380,6 +410,7 @@ const App = () => {
                 .delete('https://rwfsh39.ru/s1/api/v1/human-being/', {
                     params: {
                         carCool:
+                            // eslint-disable-next-line no-nested-ternary
                             creating.name === '+'
                                 ? true
                                 : creating.name === '-'
@@ -466,7 +497,7 @@ const App = () => {
             axios
                 .put(
                     'https://rwfsh39.ru/s1/api/v1/human-being/' + modifyObject.id,
-                    convertToJsonXml(x, 'modifyHumanBeingRequest'),
+                    convertToJsonXml(x, 'ModifyHumanBeingRequest'),
                     {headers: {'Content-Type': 'application/xml'}},
                 )
                 .then((response) => {
@@ -534,7 +565,7 @@ const App = () => {
             axios
                 .post(
                     'https://rwfsh39.ru/s1/api/v1/human-being',
-                    convertToJsonXml(x, 'createHumanBeingRequest'),
+                    convertToJsonXml(x, 'CreateHumanBeingRequest'),
                     {headers: {'Content-Type': 'application/xml'}},
                 )
                 .then((response) => {
@@ -555,7 +586,7 @@ const App = () => {
 
     useEffect(() => {
         handleSubmitFilters();
-    }, [filters.page, filters.size]);
+    }, [filters]);
 
     const moodOptions = ['SORROW', 'APATHY', 'CALM', 'RAGE', 'FRENZY'] as const;
     const weaponTypeOptions = ['HAMMER', 'AXE', 'PISTOL', 'KNIFE', 'BAT'] as const;
@@ -569,10 +600,25 @@ const App = () => {
         'hasToothpick',
         'impactSpeed',
         'minutesOfWaiting',
-        'coolCar',
+        'carCool',
         'mood',
         'weaponType',
     ] as const;
+
+    const translateFieldOptions = {
+        id: 'ИД',
+        name: 'Имя',
+        coordinateX: 'Координата X',
+        coordinateY: 'Координата Y',
+        creationDate: 'Дата создания',
+        realHero: 'Настоящий герой',
+        hasToothpick: 'Есть зубная щетка',
+        impactSpeed: 'Скорость',
+        minutesOfWaiting: 'Ожидание (мин)',
+        carCool: 'Крутая тачка',
+        mood: 'Настроение',
+        weaponType: 'Оружие',
+    } as const;
 
     useEffect(() => {
         axios
@@ -587,8 +633,8 @@ const App = () => {
                     coordinateXLte: filters.coordinateXLte,
                     coordinateYGte: filters.coordinateYGte,
                     coordinateYLte: filters.coordinateYLte,
-                    creationDateGte: filters.creationDateGte,
-                    creationDateLte: filters.creationDateLte,
+                    creationDateGte: filters.creationDateGte ? filters.creationDateGte : undefined,
+                    creationDateLte: filters.creationDateLte ? filters.creationDateGte : undefined,
                     realHero: filters.realHero,
                     hasToothpick: filters.hasToothpick,
                     impactSpeedGte: filters.impactSpeedGte,
@@ -608,21 +654,21 @@ const App = () => {
                 },
             })
             .then((response) => {
-                const parsedResponsed = parseAllRequestFromXml(response.data);
-                setData(parsedResponsed.teamList);
+                const parsedResponse = parseAllRequestFromXml(response.data);
+                setData(parsedResponse.teamList);
             });
     }, [sendRequestCount]);
 
     const allowedStatF = ['IMPACT_SPEED', 'MINUTES_OF_WAITING'] as const;
-    const allowedStatS = ['MEAN', 'MIN', 'MAX'] as const;
+    const allowedStatS = ['AVERAGE', 'MIN', 'MAX'] as const;
     const allowedStatFTranslation = {
         IMPACT_SPEED: 'Скорость удара',
         MINUTES_OF_WAITING: 'Минуты ожидания',
     };
-    const allowedStatSTranslation = {MEAN: 'Среднее', MIN: 'Минимальное', MAX: 'Максимальное'};
+    const allowedStatSTranslation = {AVERAGE: 'Среднее', MIN: 'Минимальное', MAX: 'Максимальное'};
 
     const [statF, setStatF] = useState<string>('IMPACT_SPEED');
-    const [statS, setStatS] = useState<string>('MEAN');
+    const [statS, setStatS] = useState<string>('AVERAGE');
     const [statsResponse, setStatsResponse] = useState<string>();
 
     const calculateStats = () => {
@@ -634,11 +680,12 @@ const App = () => {
                 },
             })
             .then((response) => {
+                console.log(xml2js(response.data, {compact: true}) as any);
                 setStatsResponse(
                     (
                         Math.round(
                             Number(
-                                (xml2js(response.data, {compact: true}) as any).statisticResponseDto
+                                (xml2js(response.data, {compact: true}) as any).StatisticResponseDto
                                     .result._text,
                             ) * 1000,
                         ) / 1000
@@ -660,8 +707,8 @@ const App = () => {
                 </div>
             )}
 
-            <Modal open={statsPopupOpen} onClose={() => setStatsPopupOpen(false)}>
-                <div style={{padding: '30px 30px'}}>
+            <Dialog open={statsPopupOpen} onClose={() => setStatsPopupOpen(false)}>
+                <div style={{padding: '40px 30px 30px 30px'}}>
                     <h2 style={{marginBottom: 30, width: '300px'}}>Рассчитать статистику</h2>
                     <div style={{marginBottom: 15, width: '300px'}}>
                         <Select
@@ -704,11 +751,64 @@ const App = () => {
                         </Select>
                     </div>
                     <Button onClick={calculateStats}>Рассчитать</Button>
-                    <div style={{marginTop: 15}}>{statsResponse}</div>
+                    {statsResponse && (
+                        <div style={{marginTop: 30, fontSize: 16, fontWeight: 300}}>
+                            Ответ сервера: {statsResponse}
+                        </div>
+                    )}
                 </div>
-            </Modal>
+            </Dialog>
 
-            <Modal open={addPopupOpen} onClose={() => setAddPopupOpen(false)}>
+            <Dialog
+                open={openDeleteConfirmPopup}
+                onClose={() => {
+                    setOpenDeleteConfirmPopup(false);
+                }}
+            >
+                <div style={{padding: '50px 30px 30px 30px'}}>
+                    <h1>Подтверждение действия</h1>
+                    <p>Вы уверены что хотите удалить данный элемент? ИД: {deleteRequestData?.id}</p>
+                    <div
+                        style={{
+                            display: 'flex',
+                            justifyContent: 'flex-end',
+                            marginTop: 30,
+                            gap: 10,
+                        }}
+                    >
+                        <Button>Отмена</Button>
+                        <Button
+                            view="action"
+                            onClick={() => {
+                                axios
+                                    .delete('https://rwfsh39.ru/s1/api/v1/human-being/', {
+                                        params: {
+                                            id: deleteRequestData?.id
+                                                ? deleteRequestData?.id
+                                                : undefined,
+                                        },
+                                    })
+                                    .then((response) => {
+                                        if (response.status === 200) {
+                                            setSendRequestCount(sendRequestCount + 1);
+                                            setSuccessAdded(true);
+                                            setOpenDeleteConfirmPopup(false);
+                                        } else {
+                                        }
+                                    })
+                                    .catch((error) => {
+                                        if (error.status === 400) {
+                                            alert(error.response.data);
+                                        }
+                                    });
+                            }}
+                        >
+                            Удалить
+                        </Button>
+                    </div>
+                </div>
+            </Dialog>
+            <Dialog open={addPopupOpen} onClose={() => setAddPopupOpen(false)}>
                 <div style={{padding: '30px 30px'}}>
                     <h2>Добавление</h2>
                     <h3 style={{marginBottom: 8}}>Имя</h3>
@@ -821,9 +921,9 @@ const App = () => {
                         Добавить
                     </Button>
                 </div>
-            </Modal>
+            </Dialog>
 
-            <Modal open={deletePopupOpen} onClose={() => setDeletePopupOpen(false)}>
+            <Dialog open={deletePopupOpen} onClose={() => setDeletePopupOpen(false)}>
                 <div style={{padding: '30px 30px', width: 300}}>
                     <h2 style={{marginBottom: 30}}>Удалить по параметрам</h2>
 
@@ -860,10 +960,10 @@ const App = () => {
                         Удалить
                     </Button>
                 </div>
-            </Modal>
+            </Dialog>
 
-            <Modal open={sadPopupOpen} onClose={() => setSadPopupOpen(false)}>
-                <div style={{padding: '30px 100px'}}>
+            <Dialog open={sadPopupOpen} onClose={() => setSadPopupOpen(false)}>
+                <div style={{padding: '40px 30px 30px 30px'}}>
                     <h3 style={{marginBottom: 8}}>Номер команды</h3>
                     <div style={{display: 'flex', gap: 15, marginBottom: 15}}>
                         <TextInput
@@ -875,31 +975,38 @@ const App = () => {
                     </div>
                     <Button
                         onClick={() => {
-                            if (!modifyObject) return;
                             axios
-                                .post(`https://rwfsh39.ru/s2/api/v1/team/${team}/make-depressive`)
+                                .put(
+                                    `https://rwfsh39.ru/s2/api/v1/team/${team}/make-depressive`,
+                                    {},
+                                    {
+                                        headers: {'Content-Type': 'application/xml'},
+                                    },
+                                )
                                 .then((response) => {
                                     if (response.status === 200) {
                                         setSendRequestCount(sendRequestCount + 1);
                                         setSuccessAdded(true);
-                                        setTeamPopupOpen(false);
+                                        setSadPopupOpen(false);
                                     } else {
                                     }
                                 })
                                 .catch((error) => {
                                     if (error.status === 400) {
-                                        alert(error.response.data);
+                                        alert(JSON.stringify(error.response.data).toString());
+                                    } else {
+                                        alert(JSON.stringify(error.response.data).toString());
                                     }
                                 });
                         }}
                     >
-                        Добавить в команду
+                        Сделать грустными
                     </Button>
                 </div>
-            </Modal>
+            </Dialog>
 
-            <Modal open={teamPopupOpen} onClose={() => setTeamPopupOpen(false)}>
-                <div style={{padding: '30px 100px'}}>
+            <Dialog open={teamPopupOpen} onClose={() => setTeamPopupOpen(false)}>
+                <div style={{padding: '40px 40px 30px 40px'}}>
                     <h3 style={{marginBottom: 8}}>Номер команды</h3>
                     <div style={{display: 'flex', gap: 15, marginBottom: 15}}>
                         <TextInput
@@ -915,6 +1022,8 @@ const App = () => {
                             axios
                                 .post(
                                     `https://rwfsh39.ru/s2/api/v1/team/${team}/add/${modifyObject.id}`,
+                                    {},
+                                    {headers: {'Content-Type': 'application/xml'}},
                                 )
                                 .then((response) => {
                                     if (response.status === 200) {
@@ -934,9 +1043,9 @@ const App = () => {
                         Добавить в команду
                     </Button>
                 </div>
-            </Modal>
+            </Dialog>
 
-            <Modal open={modifyPopupOpen} onClose={() => setModifyPopupOpen(false)}>
+            <Dialog open={modifyPopupOpen} onClose={() => setModifyPopupOpen(false)}>
                 <div style={{padding: '30px 30px'}}>
                     <h2>Редактирование</h2>
                     <h3 style={{marginBottom: 8}}>Имя</h3>
@@ -1049,7 +1158,7 @@ const App = () => {
                         Редактировать
                     </Button>
                 </div>
-            </Modal>
+            </Dialog>
 
             <div
                 style={{
@@ -1151,26 +1260,80 @@ const App = () => {
 
                     <div style={{display: 'flex', gap: 15, marginBottom: 15}}>
                         <Switch
+                            id="realHeroSwitchFilter"
+                            disabled={filters.realHero === null}
                             checked={filters.realHero ?? false}
                             onUpdate={(e) => handleFilterUpdate(e, 'realHero')}
                         />
-                        <div>Настоящий герой</div>
+                        <label
+                            htmlFor="realHeroSwitchFilter"
+                            style={{opacity: filters.realHero === null ? 0.5 : 1}}
+                        >
+                            Настоящий герой
+                        </label>
+                        {filters.realHero === null ? (
+                            <LockOpen
+                                onClick={() => handleFilterUpdate(false, 'realHero')}
+                                style={{cursor: 'pointer'}}
+                            />
+                        ) : (
+                            <CircleXmarkFill
+                                onClick={() => handleFilterUpdate(null, 'realHero')}
+                                style={{cursor: 'pointer'}}
+                            />
+                        )}
                     </div>
 
                     <div style={{display: 'flex', gap: 15, marginBottom: 15}}>
                         <Switch
+                            id="hasToothpickSwitchFilter"
+                            disabled={filters.hasToothpick === null}
                             checked={filters.hasToothpick ?? false}
                             onUpdate={(e) => handleFilterUpdate(e, 'hasToothpick')}
                         />
-                        <div>Есть зубная щетка?</div>
+                        <label
+                            htmlFor="hasToothpickSwitchFilter"
+                            style={{opacity: filters.hasToothpick === null ? 0.5 : 1}}
+                        >
+                            Есть зубная щетка?
+                        </label>
+                        {filters.hasToothpick === null ? (
+                            <LockOpen
+                                onClick={() => handleFilterUpdate(false, 'hasToothpick')}
+                                style={{cursor: 'pointer'}}
+                            />
+                        ) : (
+                            <CircleXmarkFill
+                                onClick={() => handleFilterUpdate(null, 'hasToothpick')}
+                                style={{cursor: 'pointer'}}
+                            />
+                        )}
                     </div>
 
                     <div style={{display: 'flex', gap: 15, marginBottom: 15}}>
                         <Switch
+                            id="coolCarSwitchFilter"
+                            disabled={filters.coolCar === null}
                             checked={filters.coolCar ?? false}
                             onUpdate={(e) => handleFilterUpdate(e, 'coolCar')}
                         />
-                        <div>Крутая тачка?</div>
+                        <label
+                            htmlFor="coolCarSwitchFilter"
+                            style={{opacity: filters.coolCar === null ? 0.5 : 1}}
+                        >
+                            Крутая тачка?
+                        </label>
+                        {filters.coolCar === null ? (
+                            <LockOpen
+                                onClick={() => handleFilterUpdate(false, 'coolCar')}
+                                style={{cursor: 'pointer'}}
+                            />
+                        ) : (
+                            <CircleXmarkFill
+                                onClick={() => handleFilterUpdate(null, 'coolCar')}
+                                style={{cursor: 'pointer'}}
+                            />
+                        )}
                     </div>
 
                     <h3 style={{marginBottom: 8}}>Скорость удара</h3>
@@ -1262,7 +1425,12 @@ const App = () => {
                                 }
                             >
                                 {fieldsOptions.map((el) => {
-                                    return <Select.Option value={el} content={el} />;
+                                    return (
+                                        <Select.Option
+                                            value={el}
+                                            content={translateFieldOptions[el]}
+                                        />
+                                    );
                                 })}
                             </Select>
                             <Select
@@ -1279,24 +1447,12 @@ const App = () => {
                             </Select>
                         </div>
                     ))}
-
-                    <div
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 15,
-                            marginBottom: 15,
-                            marginTop: 15,
-                        }}
-                    >
-                        <Button onClick={handleSubmitFilters}>Применить фильтры</Button>
-                    </div>
                 </div>
                 <div>
                     <Table
                         data={tableData}
                         columns={columns}
-                        emptyMessage="No data at all ¯\_(ツ)_/¯"
+                        emptyMessage="Ничего не найдено"
                     ></Table>
 
                     <div
@@ -1305,15 +1461,16 @@ const App = () => {
                             marginTop: 15,
                             display: 'flex',
                             justifyContent: 'space-between',
-                            alignItems: 'center',
+                            alignItems: 'flex-start',
                             gap: 15,
                         }}
                     >
-                        <div>
-                            Страница
+                        <div style={{display: 'flex', alignItems: 'flex-start'}}>
+                            <div style={{marginTop: 4}}>Страница</div>
                             <TextInput
-                                style={{marginLeft: 15, width: 50}}
+                                style={{marginLeft: 15, width: 100}}
                                 error={filterErrors['page']}
+                                errorPlacement="outside"
                                 value={filters.page || ''}
                                 onChange={(e) => handleFilterChange(e, 'page')}
                             />

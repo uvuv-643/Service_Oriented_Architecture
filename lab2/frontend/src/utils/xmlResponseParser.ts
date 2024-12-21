@@ -76,8 +76,29 @@ export const parseAllRequestFromXml = (xml: string) => {
     }
 };
 
+export type TeamMap = {
+    [x: string]: string[];
+};
+
+export const parseTeamResponse = (xml: string) => {
+    const originalResponse = JSON.parse(xml2json(xml, {compact: true}));
+    console.log(originalResponse);
+    return originalResponse.listHumanBeingDto.pairs.pairTeamHumanDto.reduce(
+        (acc: TeamMap, pair: any) => {
+            if (acc[pair.humanBeingId._text]) {
+                acc[pair.humanBeingId._text].push(pair.teamId._text);
+            } else {
+                Object.assign(acc, {
+                    [pair.humanBeingId._text]: [pair.teamId._text],
+                });
+            }
+            return acc;
+        },
+        {},
+    );
+};
+
 export const convertToJsonXml = (member: Partial<TeamMember>, parentTag = 'humanBeing') => {
-    console.log(member.name);
     const humanBeingsXml = {
         type: 'element',
         name: parentTag,

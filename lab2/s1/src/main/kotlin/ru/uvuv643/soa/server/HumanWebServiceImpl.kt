@@ -530,42 +530,67 @@ open class HumanWebServiceImpl : HumanWebService {
         }
     }
 
-    override fun getHumanStats(field: Optional<StatisticFieldDto>?, operation: Optional<StatisticOperationDto>?): Response? {
-
-        val selectedField = field?.orElse(null) ?: throw BadRequestException("field parameter is required (IMPACT_SPEED / MINUTES_OF_WAITING)")
-        val selectedOperation = operation?.orElse(null) ?: throw BadRequestException("operation parameter is required (MEAN / MAX / MIN)")
-
-        val fieldColumn = when (selectedField) {
-            StatisticFieldDto.IMPACT_SPEED -> "impactSpeed"
-            StatisticFieldDto.MINUTES_OF_WAITING -> "minutesOfWaiting"
+   public Response getHumanStats(StatisticFieldDto field, StatisticOperationDto operation) {
+        if (field == null) {
+            throw new BadRequestException("field parameter is required (IMPACT_SPEED / MINUTES_OF_WAITING)");
         }
 
-        val sqlFunction = when (selectedOperation) {
-            StatisticOperationDto.MEAN -> "AVG"
-            StatisticOperationDto.MIN -> "MIN"
-            StatisticOperationDto.MAX -> "MAX"
+        if (operation == null) {
+            throw new BadRequestException("operation parameter is required (MEAN / MAX / MIN)");
         }
 
-        val sql = "SELECT $sqlFunction($fieldColumn) as result FROM HumanBeing"
+        String fieldColumn;
+        switch (field) {
+            case IMPACT_SPEED:
+                fieldColumn = "impactSpeed";
+                break;
+            case MINUTES_OF_WAITING:
+                fieldColumn = "minutesOfWaiting";
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid field option");
+        }
 
-        DatabaseConfig.getConnection().use { connection ->
-            try {
-                connection.prepareStatement(sql).use { stmt ->
-                    val rs = stmt.executeQuery()
+        String sqlFunction;
+        switch (operation) {
+            case MEAN:
+                sqlFunction = "AVG";
+                break;
+            case MIN:
+                sqlFunction = "MIN";
+                break;
+            case MAX:
+                sqlFunction = "MAX";
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid operation option");
+        }
+
+        String sql = "SELECT " + sqlFunction + "(" + fieldColumn + ") as result FROM HumanBeing";
+
+        try (Connection connection = DatabaseConfig.getConnection()) {
+            try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+                try (ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
-                        val result = rs.getDouble("result")
-                        return Response.ok().entity(StatisticResponseDto(result = result)).type(MediaType.APPLICATION_XML_TYPE).build()
+                        double result = rs.getDouble("result");
+                        return Response.ok()
+                            .entity(new StatisticResponseDto(result))
+                            .type(MediaType.APPLICATION_XML_TYPE)
+                            .build();
                     } else {
-                        return Response.ok().entity(StatisticResponseDto(result = null)).type(MediaType.APPLICATION_XML_TYPE).build()
+                        return Response.ok()
+                            .entity(new StatisticResponseDto((Double) null))
+                            .type(MediaType.APPLICATION_XML_TYPE)
+                            .build();
                     }
                 }
-            } catch (ex: Exception) {
-                ex.printStackTrace()
-                throw InternalServerErrorException(ex.message)
             }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new InternalServerErrorException(ex.getMessage());
         }
-
     }
+
 
     @Produces(MediaType.APPLICATION_XML)
     @DELETE
