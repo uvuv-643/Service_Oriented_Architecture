@@ -35,7 +35,7 @@ public class ModifyHumanBeingRequest implements Serializable {
 
         @XmlElement(name = "impactSpeed")
         @Max(676)
-        private Float impactSpeed;
+        private Double impactSpeed;
 
         @XmlElement(name = "minutesOfWaiting")
         @PositiveOrZero
@@ -58,7 +58,7 @@ public class ModifyHumanBeingRequest implements Serializable {
         }
 
         public ModifyHumanBeingRequest(String name, CoordinatesUpdateDto coordinates, Boolean realHero, Boolean hasToothpick,
-                                       Float impactSpeed, Double minutesOfWaiting, CarDto car, MoodDto mood,
+                                       Double impactSpeed, Double minutesOfWaiting, CarDto car, MoodDto mood,
                                        WeaponTypeDto weaponType) {
                 this.name = name;
                 this.coordinates = coordinates;
@@ -103,11 +103,11 @@ public class ModifyHumanBeingRequest implements Serializable {
                 this.hasToothpick = hasToothpick;
         }
 
-        public Float getImpactSpeed() {
+        public Double getImpactSpeed() {
                 return impactSpeed;
         }
 
-        public void setImpactSpeed(Float impactSpeed) {
+        public void setImpactSpeed(Double impactSpeed) {
                 this.impactSpeed = impactSpeed;
         }
 

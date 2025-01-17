@@ -9,6 +9,9 @@ import  jakarta.xml.bind.annotation.XmlAccessorType;
 import  jakarta.xml.bind.annotation.XmlAttribute;
 import  jakarta.xml.bind.annotation.XmlElement;
 import  jakarta.xml.bind.annotation.XmlRootElement;
+import ru.uvuv643.ejb.remote.dto.enums.MoodDto;
+import ru.uvuv643.ejb.remote.dto.enums.WeaponTypeDto;
+
 import java.io.Serializable;
 import java.util.Date;
 
@@ -45,7 +48,7 @@ public class HumanBeingDto implements Serializable {
 
         @XmlElement(name = "impactSpeed")
         @NotNull
-        private Float impactSpeed;
+        private Double impactSpeed;
 
         @XmlElement(name = "minutesOfWaiting")
         @NotNull
@@ -54,12 +57,12 @@ public class HumanBeingDto implements Serializable {
 
         @XmlElement(name = "weaponType")
         @Valid
-        private String weaponType;
+        private WeaponTypeDto weaponType;
 
         @XmlElement(name = "mood")
         @NotNull
         @Valid
-        private String mood;
+        private MoodDto mood;
 
         @XmlElement(name = "car")
         @NotNull
@@ -67,10 +70,10 @@ public class HumanBeingDto implements Serializable {
         private CarDto car;
 
         public HumanBeingDto() {
-                this(1, "null", null, new Date(), true, false, 1.0f, 1.0, "", "", new CarDto(true));
+                this(1, "null", null, new Date(), true, false, 1.0d, 1.0, WeaponTypeDto.HAMMER, MoodDto.FRENZY, new CarDto(true));
         }
 
-        public HumanBeingDto(Integer id, String name, CoordinatesDto coordinates, Date creationDate, Boolean realHero, Boolean hasToothpick, Float impactSpeed, Double minutesOfWaiting, String weaponType, String mood, CarDto car) {
+        public HumanBeingDto(Integer id, String name, CoordinatesDto coordinates, Date creationDate, Boolean realHero, Boolean hasToothpick, Double impactSpeed, Double minutesOfWaiting, WeaponTypeDto weaponType, MoodDto mood, CarDto car) {
                 this.id = id;
                 this.name = name;
                 this.coordinates = coordinates;
@@ -134,11 +137,11 @@ public class HumanBeingDto implements Serializable {
                 this.hasToothpick = hasToothpick;
         }
 
-        public Float getImpactSpeed() {
+        public Double getImpactSpeed() {
                 return impactSpeed;
         }
 
-        public void setImpactSpeed(Float impactSpeed) {
+        public void setImpactSpeed(Double impactSpeed) {
                 this.impactSpeed = impactSpeed;
         }
 
@@ -150,19 +153,19 @@ public class HumanBeingDto implements Serializable {
                 this.minutesOfWaiting = minutesOfWaiting;
         }
 
-        public String getWeaponType() {
+        public WeaponTypeDto getWeaponType() {
                 return weaponType;
         }
 
-        public void setWeaponType(String weaponType) {
+        public void setWeaponType(WeaponTypeDto weaponType) {
                 this.weaponType = weaponType;
         }
 
-        public String getMood() {
+        public MoodDto getMood() {
                 return mood;
         }
 
-        public void setMood(String mood) {
+        public void setMood(MoodDto mood) {
                 this.mood = mood;
         }
 
@@ -175,4 +178,22 @@ public class HumanBeingDto implements Serializable {
         public void setCar(CarDto car) {
                 this.car = car;
         }
+
+        @Override
+        public String toString() {
+                return "HumanBeingDto{" +
+                        "id=" + id +
+                        ", name='" + name + '\'' +
+                        ", coordinates=" + coordinates +
+                        ", creationDate=" + creationDate +
+                        ", realHero=" + realHero +
+                        ", hasToothpick=" + hasToothpick +
+                        ", impactSpeed=" + impactSpeed +
+                        ", minutesOfWaiting=" + minutesOfWaiting +
+                        ", weaponType=" + weaponType +
+                        ", mood=" + mood +
+                        ", car=" + car +
+                        '}';
+        }
+
 }

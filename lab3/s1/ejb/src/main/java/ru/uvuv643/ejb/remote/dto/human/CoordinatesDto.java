@@ -48,4 +48,12 @@ public class CoordinatesDto implements Serializable {
         public void setY(Long y) {
                 this.y = y;
         }
+
+        @Override
+        public String toString() {
+                return "Coordinates{" +
+                        "x=" + x +
+                        ", y=" + y  + "}";
+        }
+
 }

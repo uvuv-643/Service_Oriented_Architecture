@@ -11,11 +11,11 @@ import ru.uvuv643.ejb.remote.dto.enums.StatisticFieldDto;
 import ru.uvuv643.ejb.remote.dto.enums.StatisticOperationDto;
 import ru.uvuv643.ejb.remote.dto.human.request.CreateHumanBeingRequest;
 import ru.uvuv643.ejb.remote.dto.human.request.ModifyHumanBeingRequest;
+import ru.uvuv643.web.config.ConsulConfig;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import java.util.List;
-import java.util.Optional;
 
 @Consumes(MediaType.APPLICATION_XML)
 @Produces(MediaType.APPLICATION_XML)
@@ -37,16 +37,16 @@ public class HumanWebServiceImpl implements HumanWebService {
             @QueryParam("nameIn") List<String> nameIn,
             @QueryParam("coordinateXGte") Integer coordinateXGte,
             @QueryParam("coordinateXLte") Integer coordinateXLte,
-            @QueryParam("coordinateYGte") Double coordinateYGte,
-            @QueryParam("coordinateYLte") Double coordinateYLte,
+            @QueryParam("coordinateYGte") Long coordinateYGte,
+            @QueryParam("coordinateYLte") Long coordinateYLte,
             @QueryParam("creationDateGte") String creationDateGte,
             @QueryParam("creationDateLte") String creationDateLte,
             @QueryParam("realHero") Boolean realHero,
             @QueryParam("hasToothpick") Boolean hasToothpick,
-            @QueryParam("impactSpeedGte") Float impactSpeedGte,
-            @QueryParam("impactSpeedLte") Float impactSpeedLte,
-            @QueryParam("minutesOfWaitingGte") Long minutesOfWaitingGte,
-            @QueryParam("minutesOfWaitingLte") Long minutesOfWaitingLte,
+            @QueryParam("impactSpeedGte") Double impactSpeedGte,
+            @QueryParam("impactSpeedLte") Double impactSpeedLte,
+            @QueryParam("minutesOfWaitingGte") Double minutesOfWaitingGte,
+            @QueryParam("minutesOfWaitingLte") Double minutesOfWaitingLte,
             @QueryParam("coolCar") Boolean coolCar,
             @QueryParam("moodIn") List<String> moodIn,
             @QueryParam("weaponTypeIn") List<String> weaponTypeIn,
@@ -57,7 +57,7 @@ public class HumanWebServiceImpl implements HumanWebService {
 
         return Response.ok(remoteServiceEjb.getAllHumanBeing(idGte, idLte, nameIn, coordinateXGte, coordinateXLte, coordinateYGte,
                 coordinateYLte, creationDateGte, creationDateLte, realHero, hasToothpick, impactSpeedGte, impactSpeedLte,
-                minutesOfWaitingGte, minutesOfWaitingLte, coolCar, moodIn, weaponTypeIn, page, size, sortFields, sortDirections)).header("Payara", "False").build();
+                minutesOfWaitingGte, minutesOfWaitingLte, coolCar, moodIn, weaponTypeIn, page, size, sortFields, sortDirections)).header("X-Server", ConsulConfig.service).build();
     }
 
     @Override
@@ -67,7 +67,7 @@ public class HumanWebServiceImpl implements HumanWebService {
     @Path("/human-being")
     public Response createHumanBeing(@Valid CreateHumanBeingRequest request) {
         remoteServiceEjb.createHumanBeing(request);
-        return Response.ok().build();
+        return Response.ok().header("X-Server", ConsulConfig.service).build();
     }
 
     @Override
@@ -75,7 +75,7 @@ public class HumanWebServiceImpl implements HumanWebService {
     @Path("/human-being/{id}")
     @Produces(MediaType.APPLICATION_XML)
     public Response getHumanBeingById(@PathParam("id") int id) {
-        return Response.ok(remoteServiceEjb.getHumanBeingById(id)).build();
+        return Response.ok(remoteServiceEjb.getHumanBeingById(id)).header("X-Server", ConsulConfig.service).build();
     }
 
     @Override
@@ -85,7 +85,7 @@ public class HumanWebServiceImpl implements HumanWebService {
     @Produces(MediaType.APPLICATION_XML)
     public Response modifyHumanBeing(@PathParam("id") String id, @Valid ModifyHumanBeingRequest request) {
         remoteServiceEjb.modifyHumanBeing(id, request);
-        return Response.ok().build();
+        return Response.ok().header("X-Server", ConsulConfig.service).build();
     }
 
     @Override
@@ -94,18 +94,21 @@ public class HumanWebServiceImpl implements HumanWebService {
     @Produces(MediaType.APPLICATION_XML)
     public Response getHumanStats( @QueryParam("field") StatisticFieldDto field,
                                    @QueryParam("operation") StatisticOperationDto operation) {
-        return Response.ok(remoteServiceEjb.getHumanStats(field, operation)).build();
+        return Response.ok(remoteServiceEjb.getHumanStats(field, operation)).header("X-Server", ConsulConfig.service).build();
     }
 
-    @Override
     @DELETE
     @Path("/human-being")
     @Produces(MediaType.APPLICATION_XML)
-    public Response deleteByParams(@QueryParam("carCool") Boolean carCool,
-                                    @QueryParam("impactSpeed") Float impactSpeed,
-                                    @QueryParam("limit") @PositiveOrZero @Valid Integer limit) {
-        remoteServiceEjb.deleteByParams(carCool, impactSpeed, limit);
-        return Response.ok().build();
+    @Override
+    public Response deleteByParams(
+            @QueryParam("id") Integer id,
+            @QueryParam("carCool") Boolean carCool,
+                @QueryParam("impactSpeed") Double impactSpeed,
+            @QueryParam("limit") @PositiveOrZero @Valid Integer limit
+    ) {
+        remoteServiceEjb.deleteByParams(id, carCool, impactSpeed, limit);
+        return Response.ok().header("X-Server", ConsulConfig.service).build();
     }
 
     private RemoteServiceEjb getFromEJBPool() throws NamingException {

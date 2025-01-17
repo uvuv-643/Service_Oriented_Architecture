@@ -1,7 +1,6 @@
 package ru.uvuv643.web;
 
 import java.util.List;
-import java.util.Optional;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.ws.rs.*;
@@ -28,16 +27,16 @@ public interface HumanWebService {
             @QueryParam("nameIn") List<String> nameIn,
             @QueryParam("coordinateXGte") Integer coordinateXGte,
             @QueryParam("coordinateXLte") Integer coordinateXLte,
-            @QueryParam("coordinateYGte") Double coordinateYGte,
-            @QueryParam("coordinateYLte") Double coordinateYLte,
+            @QueryParam("coordinateYGte") Long coordinateYGte,
+            @QueryParam("coordinateYLte") Long coordinateYLte,
             @QueryParam("creationDateGte") String creationDateGte,
             @QueryParam("creationDateLte") String creationDateLte,
             @QueryParam("realHero") Boolean realHero,
             @QueryParam("hasToothpick") Boolean hasToothpick,
-            @QueryParam("impactSpeedGte") Float impactSpeedGte,
-            @QueryParam("impactSpeedLte") Float impactSpeedLte,
-            @QueryParam("minutesOfWaitingGte") Long minutesOfWaitingGte,
-            @QueryParam("minutesOfWaitingLte") Long minutesOfWaitingLte,
+            @QueryParam("impactSpeedGte") Double impactSpeedGte,
+            @QueryParam("impactSpeedLte") Double impactSpeedLte,
+            @QueryParam("minutesOfWaitingGte") Double minutesOfWaitingGte,
+            @QueryParam("minutesOfWaitingLte") Double minutesOfWaitingLte,
             @QueryParam("coolCar") Boolean coolCar,
             @QueryParam("moodIn") List<String> moodIn,
             @QueryParam("weaponTypeIn") List<String> weaponTypeIn,
@@ -76,8 +75,10 @@ public interface HumanWebService {
     @Path("/human-being")
     @Produces(MediaType.APPLICATION_XML)
     Response deleteByParams(
+            @QueryParam("id") Integer id,
             @QueryParam("carCool") Boolean carCool,
-            @QueryParam("impactSpeed") Float impactSpeed,
+            @QueryParam("impactSpeed") Double impactSpeed,
             @QueryParam("limit") @PositiveOrZero @Valid Integer limit
     );
+
 }

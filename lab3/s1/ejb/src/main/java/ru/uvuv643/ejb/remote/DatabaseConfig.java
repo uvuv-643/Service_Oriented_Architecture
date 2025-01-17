@@ -1,4 +1,4 @@
-package ru.uvuv643.soa.server;
+package ru.uvuv643.ejb.remote;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

@@ -46,21 +46,17 @@ export function isMinValue(str: string | null, limit: number): boolean {
 }
 
 /**
- * Checks if the provided string is a valid date in the format yyyy-mm-dd.
+ * Checks if the provided string is a valid date in the format dd.mm.yyyy.
  * @param str - The string to check.
- * @returns `true` if the string matches the yyyy-mm-dd format and is a valid date, otherwise `false`.
+ * @returns true if the string matches the dd.mm.yyyy format and is a valid date, otherwise false.
  */
 export function isValidDate(str: string | null): boolean {
     if (!str) return true;
-    const regex = /^\d{4}-\d{2}-\d{2}$/;
+    const regex = /^\d{2}\.\d{2}\.\d{4}$/;
     if (!regex.test(str)) return false;
 
-    const date = new Date(str);
-    const [year, month, day] = str.split('-').map(Number);
+    const [day, month, year] = str.split('.').map(Number);
+    const date = new Date(year, month - 1, day); // Month is 0-indexed in JavaScript Date
 
-    return (
-        date.getFullYear() === year &&
-        date.getMonth() === month - 1 && // Month is 0-indexed in JavaScript Date
-        date.getDate() === day
-    );
+    return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
 }

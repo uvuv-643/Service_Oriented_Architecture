@@ -1,7 +1,6 @@
 package ru.uvuv643.ejb.remote;
 
 import jakarta.ejb.Remote;
-import jakarta.ws.rs.core.Response;
 import ru.uvuv643.ejb.remote.dto.enums.SortOrderDto;
 import ru.uvuv643.ejb.remote.dto.enums.StatisticFieldDto;
 import ru.uvuv643.ejb.remote.dto.enums.StatisticOperationDto;
@@ -12,7 +11,6 @@ import ru.uvuv643.ejb.remote.dto.human.response.AllResponseDto;
 import ru.uvuv643.ejb.remote.dto.human.response.StatisticResponseDto;
 
 import java.util.List;
-import java.util.Optional;
 
 @Remote
 public interface RemoteServiceEjb {
@@ -23,16 +21,16 @@ public interface RemoteServiceEjb {
             List<String> nameIn,
             Integer coordinateXGte,
             Integer coordinateXLte,
-            Double coordinateYGte,
-            Double coordinateYLte,
+            Long coordinateYGte,
+            Long coordinateYLte,
             String creationDateGte,
             String creationDateLte,
             Boolean realHero,
             Boolean hasToothpick,
-            Float impactSpeedGte,
-            Float impactSpeedLte,
-            Long minutesOfWaitingGte,
-            Long minutesOfWaitingLte,
+            Double impactSpeedGte,
+            Double impactSpeedLte,
+            Double minutesOfWaitingGte,
+            Double minutesOfWaitingLte,
             Boolean coolCar,
             List<String> moodIn,
             List<String> weaponTypeIn,
@@ -50,7 +48,6 @@ public interface RemoteServiceEjb {
 
     StatisticResponseDto getHumanStats(StatisticFieldDto field, StatisticOperationDto operation);
 
-    void deleteByParams(Boolean carCool, Float impactSpeed, Integer limit);
-
+    void deleteByParams(Integer id, Boolean carCool, Double impactSpeed, Integer limit);
 
 }

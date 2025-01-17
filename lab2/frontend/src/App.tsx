@@ -5,7 +5,13 @@ import {Wrapper} from './components/Wrapper';
 
 import {Alert, Button, Dialog, Select, Switch, Table, TextInput} from '@gravity-ui/uikit';
 import axios from 'axios';
-import {CircleXmarkFill, LockOpen, PencilToSquare, PersonPlanetEarth} from '@gravity-ui/icons';
+import {
+    CircleXmarkFill,
+    LockOpen,
+    PencilToSquare,
+    PersonPlanetEarth,
+    TrashBin,
+} from '@gravity-ui/icons';
 import {Buffer} from 'buffer';
 import {
     TeamMap,
@@ -149,7 +155,7 @@ const App = () => {
             creationDate:
                 new Date(member.creationDate).getDate() +
                 '.' +
-                new Date(member.creationDate).getMonth() +
+                (new Date(member.creationDate).getMonth() + 1) +
                 '.' +
                 new Date(member.creationDate).getFullYear(),
             realHero: member.realHero ? 'Да' : 'Нет',
@@ -207,10 +213,11 @@ const App = () => {
                         onClick={() => {
                             setDeleteRequestData(member);
                             setOpenDeleteConfirmPopup(true);
-                            console.log('!@#');
                         }}
                     >
-                        <div></div>
+                        <div>
+                            <TrashBin />
+                        </div>
                     </div>
                 </div>
             ),
@@ -634,7 +641,7 @@ const App = () => {
                     coordinateYGte: filters.coordinateYGte,
                     coordinateYLte: filters.coordinateYLte,
                     creationDateGte: filters.creationDateGte ? filters.creationDateGte : undefined,
-                    creationDateLte: filters.creationDateLte ? filters.creationDateGte : undefined,
+                    creationDateLte: filters.creationDateLte ? filters.creationDateLte : undefined,
                     realHero: filters.realHero,
                     hasToothpick: filters.hasToothpick,
                     impactSpeedGte: filters.impactSpeedGte,
@@ -1244,14 +1251,14 @@ const App = () => {
                     <div style={{display: 'flex', gap: 15, marginBottom: 15}}>
                         <TextInput
                             size="l"
-                            placeholder="от (yyyy-mm-dd)"
+                            placeholder="от (dd.mm.yyyy)"
                             error={filterErrors['creationDateGte']}
                             value={filters.creationDateGte || ''}
                             onChange={(e) => handleFilterChange(e, 'creationDateGte')}
                         />
                         <TextInput
                             size="l"
-                            placeholder="до (yyyy-mm-dd)"
+                            placeholder="до (dd.mm.yyyy)"
                             error={filterErrors['creationDateLte']}
                             value={filters.creationDateLte || ''}
                             onChange={(e) => handleFilterChange(e, 'creationDateLte')}
@@ -1448,7 +1455,7 @@ const App = () => {
                         </div>
                     ))}
                 </div>
-                <div>
+                <div style={{minWidth: 1120}}>
                     <Table
                         data={tableData}
                         columns={columns}

@@ -30,4 +30,11 @@ public class CarDto implements Serializable {
         public void setCool(Boolean cool) {
                 this.cool = cool;
         }
+
+        @Override
+        public String toString() {
+                return "Car {" +
+                        "cool='" + cool + "'}";
+        }
+
 }

@@ -38,7 +38,7 @@ public class CreateHumanBeingRequest implements Serializable {
         @XmlElement(name = "impactSpeed")
         @NotNull(message = "is not correct value")
         @Max(676)
-        private Float impactSpeed;
+        private Double impactSpeed;
 
         @XmlElement(name = "minutesOfWaiting")
         @NotNull(message = "is not correct value")
@@ -64,7 +64,7 @@ public class CreateHumanBeingRequest implements Serializable {
         }
 
         public CreateHumanBeingRequest(String name, CoordinatesDto coordinates, Boolean realHero, Boolean hasToothpick,
-                                       Float impactSpeed, Double minutesOfWaiting, CarDto car, MoodDto mood,
+                                       Double impactSpeed, Double minutesOfWaiting, CarDto car, MoodDto mood,
                                        WeaponTypeDto weaponType) {
                 this.name = name;
                 this.coordinates = coordinates;
@@ -109,11 +109,11 @@ public class CreateHumanBeingRequest implements Serializable {
                 this.hasToothpick = hasToothpick;
         }
 
-        public Float getImpactSpeed() {
+        public Double getImpactSpeed() {
                 return impactSpeed;
         }
 
-        public void setImpactSpeed(Float impactSpeed) {
+        public void setImpactSpeed(Double impactSpeed) {
                 this.impactSpeed = impactSpeed;
         }
 

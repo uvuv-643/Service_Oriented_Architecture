@@ -16,7 +16,9 @@ import java.util.Collections;
 @Singleton
 public class ConsulConfig {
 
-    String serviceId = "s1-2";
+    public static final String service = "payara";
+
+    String serviceId = service.equals("wildfly") ? "s1-1" : "s1-2";
     Consul client;
     AgentClient agentClient;
 
@@ -29,7 +31,7 @@ public class ConsulConfig {
                 .id(serviceId)
                 .name("s1")
                 .port(8080)
-                .address("wildfly")
+                .address(ConsulConfig.service)
                 .tags(Collections.singletonList("s1"))
                 .meta(Collections.singletonMap("version", "1.0"))
                 .build();

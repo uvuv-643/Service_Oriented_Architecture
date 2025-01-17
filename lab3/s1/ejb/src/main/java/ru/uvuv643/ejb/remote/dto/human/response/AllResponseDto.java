@@ -31,4 +31,9 @@ public class AllResponseDto implements Serializable {
         public void setHumanBeingDto(List<HumanBeingDto> humanBeingDto) {
                 this.humanBeingDto = humanBeingDto;
         }
+
+        @Override
+        public String toString() {
+                return getHumanBeingDto().toString();
+        }
 }
