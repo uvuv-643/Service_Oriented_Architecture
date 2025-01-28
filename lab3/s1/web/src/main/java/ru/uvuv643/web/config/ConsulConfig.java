@@ -16,7 +16,7 @@ import java.util.Collections;
 @Singleton
 public class ConsulConfig {
 
-    public static final String service = "payara";
+    public static final String service = "wildfly";
 
     String serviceId = service.equals("wildfly") ? "s1-1" : "s1-2";
     Consul client;

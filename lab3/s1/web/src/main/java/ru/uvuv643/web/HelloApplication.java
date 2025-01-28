@@ -18,6 +18,7 @@ import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlElementWrapper;
 import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.ws.Endpoint;
 import org.glassfish.jersey.server.ParamException;
 import org.glassfish.jersey.server.ResourceConfig;
 import ru.uvuv643.ejb.remote.dto.human.response.AllResponseDto;
@@ -128,6 +129,7 @@ class IllegalArgumentExceptionMapper implements ExceptionMapper<IllegalArgumentE
 @ApplicationPath("/api")
 public class HelloApplication extends ResourceConfig {
     public HelloApplication() {
+
         register(HumanWebServiceImpl.class);
         register(ConstraintViolationExceptionMapper.class);
 

@@ -3,6 +3,7 @@ package ru.uvuv643;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,8 +11,12 @@ import org.springframework.web.client.RestTemplate;
 import ru.uvuv643.dto.human.ListHumanBeingDto;
 import ru.uvuv643.dto.human.PairTeamHumanDto;
 
+import java.io.StringWriter;
 import java.security.cert.X509Certificate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.table;
@@ -22,6 +27,11 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.TrustStrategy;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 
 @RestController
 @RequestMapping("/v1/team")
@@ -145,6 +155,28 @@ public class TeamWebServiceImpl {
         } catch (Exception e) {
             throw new RuntimeException("Failed to create RestTemplate with SSL support", e);
         }
+    }
+
+    @GetMapping(value = "/properties", produces = MediaType.APPLICATION_XML_VALUE)
+    public String getPropertiesAsXml() throws Exception {
+        Properties properties = new Properties();
+        properties.load(new ClassPathResource("application.properties").getInputStream());
+        StringWriter writer = new StringWriter();
+        JAXBContext context = JAXBContext.newInstance(PropertiesXml.class);
+        Marshaller marshaller = context.createMarshaller();
+        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+        marshaller.marshal(new PropertiesXml(properties), writer);
+        return writer.toString();
+    }
+
+    @XmlRootElement(name = "Properties")
+    public static class PropertiesXml {
+        private Properties properties;
+        public PropertiesXml() {}
+        public PropertiesXml(Properties properties) { this.properties = properties; }
+        @XmlElement(name = "Property")
+        public Properties getProperties() { return properties; }
+        public void setProperties(Properties properties) { this.properties = properties; }
     }
 
 }
