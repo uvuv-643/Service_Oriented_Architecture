@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  postgres:
+    container_name: postgres
+    restart: unless-stopped
+    image: postgres:16
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=your_database
+      - POSTGRES_USER=your_user
+      - POSTGRES_PASSWORD=your_password
+    volumes:
+      - postgresql-volume:/var/lib/postgresql/data
+    networks:
+      - develop
+  server:
+    build: s2/server
+    container_name: server
+    depends_on:
+      - config-server
+      - eureka-server
+    networks:
+      - develop
+    ports:
+      - "9001:9001"
+  server2:
+    build: s2/server
+    container_name: server2
+    depends_on:
+      - config-server
+      - eureka-server
+    networks:
+      - develop
+    ports:
+      - "9002:9001"
+  eureka-server:
+    build: s2/eureka-server
+    container_name: eureka-server
+    networks:
+      - develop
+    ports:
+      - "8761:8761"
+  ribbon:
+    build: s2/ribbon
+    container_name: ribbon
+    depends_on:
+      - eureka-server
+    networks:
+      - develop
+    ports:
+      - "9004:9004"
+  config-server:
+    build: s2/config-server
+    container_name: config-server
+    depends_on:
+      - eureka-server
+    networks:
+      - develop
+    ports:
+      - "8888:8888"
+    volumes:
+      - /Users/uvuv/spring-cloud-config-repo:/root/spring-cloud-config-repo
+
+networks:
+  develop:
+    driver: bridge 
+
+volumes:
+  postgresql-volume:
+    driver: local

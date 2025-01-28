@@ -1,0 +1,114 @@
+plugins {
+  id 'java'
+//  id 'nu.studer.jooq' version '8.2.1' // make sure the version is compatible with your setup
+
+}
+
+group 'ru.uvuv643.ejb'
+version '1.0-SNAPSHOT'
+
+repositories {
+  mavenCentral()
+}
+
+configurations {
+  includeInJar
+}
+
+dependencies {
+  implementation 'org.postgresql:postgresql:42.7.4'
+  implementation 'org.jooq:jooq:3.19.0'
+  implementation 'org.jooq:jooq-meta:3.19.0'
+  implementation 'org.jooq:jooq-codegen:3.19.0'
+
+  // Jakarta EE API
+  compileOnly 'jakarta.platform:jakarta.jakartaee-api:10.0.0'
+
+  // Jersey as JAX-RS Implementation
+  implementation 'org.glassfish.jersey.containers:jersey-container-servlet:3.0.3'
+  implementation 'org.glassfish.jersey.media:jersey-media-jaxb:3.1.9'
+  implementation 'com.sun.xml.bind:jaxb-osgi:3.0.2'
+
+  // Servlet API
+  compileOnly 'jakarta.servlet:jakarta.servlet-api:6.1.0'
+
+  // JAXB for XML support
+  implementation 'jakarta.xml.bind:jakarta.xml.bind-api:3.0.1'
+  implementation 'org.glassfish.jaxb:jaxb-runtime:3.0.1'
+
+  // Jackson Annotations and XML Data Format
+  implementation 'com.fasterxml.jackson.core:jackson-annotations:2.17.2'
+  implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.17.2'
+
+  // Jakarta Annotations
+  implementation 'jakarta.annotation:jakarta.annotation-api:3.0.0'
+
+  // Hibernate Validator
+  implementation 'org.hibernate.validator:hibernate-validator:8.0.1.Final'
+  implementation 'jakarta.validation:jakarta.validation-api:2.0.2'
+
+  // JUnit for Testing
+  testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.2'
+  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.2'
+
+  implementation 'com.orbitz.consul:consul-client:1.5.3'
+
+  testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.2'
+  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.2'
+
+//  jooqGenerator 'org.postgresql:postgresql:42.7.4'
+
+}
+
+tasks.withType(JavaCompile) {
+  options.encoding = 'UTF-8'
+}
+
+tasks.test {
+  useJUnitPlatform()
+}
+
+jar {
+  archiveBaseName.set('remote')
+  archiveVersion.set(version)
+  manifest {
+    attributes(
+            'Implementation-Title': 'EJB Module',
+            'Implementation-Version': version
+    )
+  }
+}
+
+tasks.withType(Jar) {
+  duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+  from {
+    configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+  }
+}
+//
+//jooq {
+//  version = '3.14.16' // or whichever version you need
+//
+//  configurations {
+//    main {  // Defines a jOOQ configuration named "main".
+//      generationTool {
+//        jdbc {
+//          driver = 'org.postgresql.Driver'
+//          url = 'jdbc:postgresql://127.0.0.1:5432/your_database'
+//          user = 'your_user'
+//          password = 'your_password'
+//        }
+//        generator {
+//          database {
+//            name = 'org.jooq.meta.postgres.PostgresDatabase'
+//            inputSchema = 'public'
+//          }
+//          target {
+//            packageName = 'ru.uvuv643.ejb.remote.database'
+//            directory = 'src/main/java'
+//          }
+//        }
+//      }
+//    }
+//  }
+//}
